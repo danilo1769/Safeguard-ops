@@ -3,9 +3,9 @@
     "test": "vitest",
     "test:coverage": "vitest run --coverage"
   },
-
   "devDependencies": {
     "@vitest/coverage-v8": "^4.1.5",
+    "tsx": "^4.21.0",
     "vitest": "^4.1.5"
   }
 }

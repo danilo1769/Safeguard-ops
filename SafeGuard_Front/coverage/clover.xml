@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1777142300339" clover="3.2.0">
+  <project timestamp="1777142300339" name="All files">
+    <metrics statements="25" coveredstatements="22" conditionals="10" coveredconditionals="7" methods="5" coveredmethods="5" elements="40" coveredelements="34" complexity="0" loc="25" ncloc="25" packages="2" files="2" classes="2"/>
+    <package name="pages">
+      <metrics statements="19" coveredstatements="16" conditionals="6" coveredconditionals="3" methods="4" coveredmethods="4"/>
+      <file name="Login.tsx" path="C:\Users\alesa\OneDrive\Desktop\Universidad\Clases\2026-1\Calidad_de_Software\Safeguard-ops\SafeGuard_Front\src\pages\Login.tsx">
+        <metrics statements="19" coveredstatements="16" conditionals="6" coveredconditionals="3" methods="4" coveredmethods="4"/>
+        <line num="6" count="11" type="stmt"/>
+        <line num="7" count="11" type="stmt"/>
+        <line num="8" count="11" type="stmt"/>
+        <line num="9" count="11" type="stmt"/>
+        <line num="11" count="11" type="stmt"/>
+        <line num="12" count="2" type="stmt"/>
+        <line num="13" count="2" type="stmt"/>
+        <line num="14" count="2" type="stmt"/>
+        <line num="15" count="2" type="stmt"/>
+        <line num="18" count="1" type="stmt"/>
+        <line num="21" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="22" count="1" type="stmt"/>
+        <line num="23" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="24" count="0" type="stmt"/>
+        <line num="26" count="0" type="stmt"/>
+        <line num="30" count="1" type="stmt"/>
+        <line num="34" count="11" type="stmt"/>
+        <line num="40" count="2" type="stmt"/>
+        <line num="43" count="2" type="stmt"/>
+      </file>
+    </package>
+    <package name="services">
+      <metrics statements="6" coveredstatements="6" conditionals="4" coveredconditionals="4" methods="1" coveredmethods="1"/>
+      <file name="api.ts" path="C:\Users\alesa\OneDrive\Desktop\Universidad\Clases\2026-1\Calidad_de_Software\Safeguard-ops\SafeGuard_Front\src\services\api.ts">
+        <metrics statements="6" coveredstatements="6" conditionals="4" coveredconditionals="4" methods="1" coveredmethods="1"/>
+        <line num="1" count="2" type="stmt"/>
+        <line num="3" count="2" type="stmt"/>
+        <line num="4" count="3" type="stmt"/>
+        <line num="10" count="3" type="stmt"/>
+        <line num="11" count="3" type="cond" truecount="4" falsecount="0"/>
+        <line num="12" count="1" type="stmt"/>
+      </file>
+    </package>
+  </project>
+</coverage>

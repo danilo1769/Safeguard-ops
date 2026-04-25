@@ -1,23 +1,27 @@
-import express = require('express');
-import type { Request, Response } from 'express';
-const cors = require('cors');
+import express, { type Request, type Response } from 'express';
+import cors from 'cors';
+import authRoutes from './routes/auth.routes'; // <-- IMPORTA ESTO
+import { usuariosDB } from './config/db';
+import turnoRoutes from './routes/turno.routes';
+import solicitudRoutes from './routes/solicitud.routes';
 
 const app = express();
 const PORT = 3000;
 
-// Middlewares globales (Atributo de Interoperabilidad)
-app.use(cors()); // Permite recibir peticiones del Frontend
-app.use(express.json()); // Permite entender datos en formato JSON
+app.use(cors());
+app.use(express.json());
 
-// Endpoint de prueba
+// <-- CONECTA LAS RUTAS AQUÍ
+app.use('/api/auth', authRoutes); 
+
+app.use('/api/turnos', turnoRoutes); 
+
+app.use('/api/solicitudes', solicitudRoutes);
+
 app.get('/api/health', (req: Request, res: Response) => {
-  res.status(200).json({ 
-    estado: "OK", 
-    mensaje: "Servidor SafeGuard Ops funcionando al 100%" 
-  });
+  res.status(200).json({ estado: "OK", usuariosRegistrados: usuariosDB.length });
 });
 
-// Levantar el servidor
 app.listen(PORT, () => {
-  console.log(`🚀 Servidor Pro-Code corriendo en http://localhost:${PORT}`);
+  console.log(`🚀 Servidor backend activo en puerto ${PORT}`);
 });
