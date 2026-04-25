@@ -1,9 +1,10 @@
 import express, { type Request, type Response } from 'express';
 import cors from 'cors';
 import authRoutes from './routes/auth.routes'; // <-- IMPORTA ESTO
-import { usuariosDB } from './config/db';
+import { prisma } from './config/db';
 import turnoRoutes from './routes/turno.routes';
 import solicitudRoutes from './routes/solicitud.routes';
+import adminRoutes from './routes/admin.routes';
 
 const app = express();
 const PORT = 3000;
@@ -18,8 +19,14 @@ app.use('/api/turnos', turnoRoutes);
 
 app.use('/api/solicitudes', solicitudRoutes);
 
-app.get('/api/health', (req: Request, res: Response) => {
-  res.status(200).json({ estado: "OK", usuariosRegistrados: usuariosDB.length });
+app.use('/api/admin', adminRoutes);
+
+app.get('/api/health', async (req: Request, res: Response) => {
+  const conteo = await prisma.usuario.count(); // Consulta real a SQL
+  res.status(200).json({ 
+    estado: "OK", 
+    usuariosRegistrados: conteo 
+  });
 });
 
 app.listen(PORT, () => {

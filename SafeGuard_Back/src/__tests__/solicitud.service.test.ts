@@ -23,4 +23,12 @@ describe('Solicitud Service - Reglas de Negocio', () => {
     expect(nuevaSolicitud.estado).toBe('Pendiente');
     expect(solicitudesDB).toHaveLength(1);
   });
+
+  it('Debe retornar las solicitudes filtradas por cliente', async () => {
+    solicitudesDB.push({ id: 'S1', clienteId: 'CLI-99', ubicacion: 'A', horaInicio: '2030-01-01', estado: 'Pendiente' });
+    const resultados = await import('../services/solicitud.service').then(m => m.obtenerSolicitudesPorCliente('CLI-99'));
+    expect(resultados).toHaveLength(1);
+    expect(resultados[0]?.clienteId).toBe('CLI-99');
+  });
+
 });

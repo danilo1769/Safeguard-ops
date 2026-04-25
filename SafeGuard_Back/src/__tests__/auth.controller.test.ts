@@ -11,7 +11,12 @@ describe('Auth Controller', () => {
   it('Debe retornar status 201 y un mensaje de éxito al registrar', async () => {
     // 1. Preparamos el Mock del Servicio
     vi.mocked(authService.registrarUsuario).mockResolvedValue({
-      id: 'USER-123', nombre: 'Test', email: 'test@test.com', passwordHash: '123', rol: 'Vigilante'
+      id: 'USER-123',
+      createdAt: new Date(),
+      nombre: 'Test',
+      email: 'test@test.com',
+      passwordHash: '123',
+      rol: 'Vigilante'
     });
 
     // 2. Preparamos los Mocks de Express (req, res)

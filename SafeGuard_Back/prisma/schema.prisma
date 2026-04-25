@@ -1,0 +1,50 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------- TABLAS ----------------
+
+model Usuario {
+  id           String       @id @default(uuid())
+  nombre       String
+  email        String       @unique
+  passwordHash String
+  rol          String       // 'Administrativo', 'Contratante', 'Vigilante'
+  
+  // Relaciones (Un usuario puede tener muchas solicitudes o turnos)
+  solicitudes  Solicitud[]  // Si es Contratante
+  turnos       Turno[]      // Si es Vigilante
+  createdAt    DateTime     @default(now())
+}
+
+model Solicitud {
+  id         String   @id @default(uuid())
+  ubicacion  String
+  horaInicio DateTime
+  estado     String   @default("Pendiente") // 'Pendiente', 'Asignado', 'Expirado'
+  
+  // Llave foránea hacia el Usuario (Contratante)
+  clienteId  String
+  cliente    Usuario  @relation(fields: [clienteId], references: [id])
+  
+  createdAt  DateTime @default(now())
+}
+
+model Turno {
+  id             String   @id @default(uuid())
+  latitudPuesto  Float
+  longitudPuesto Float
+  horaInicio     DateTime
+  estado         String   @default("Pendiente") // 'Pendiente', 'Completado', 'En turno'
+  
+  // Llave foránea hacia el Usuario (Vigilante)
+  vigilanteId    String
+  vigilante      Usuario  @relation(fields: [vigilanteId], references: [id])
+  
+  createdAt      DateTime @default(now())
+}
