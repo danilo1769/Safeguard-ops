@@ -55,4 +55,35 @@ describe('API Service - Comunicación con Backend', () => {
       .rejects
       .toThrow("Error de conexión (Ruta no encontrada o servidor caído). Status: 404"); 
   });
+
+  it('Debe sanitizar el HTML recibido para prevenir Log Injection (Seguridad)', async () => {
+    // 1. Espiamos la consola para ver qué intenta imprimir api.ts
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    
+    // 2. El Payload Malicioso (Más de 100 caracteres y lleno de saltos de línea \n)
+    const htmlMalicioso = '<!DOCTYPE html>\n<script>\n alert("Hackeado"); \n</script>\n' + 'A'.repeat(150);
+
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 500,
+      headers: { get: () => 'text/html' },
+      text: async () => htmlMalicioso
+    });
+    vi.stubGlobal('fetch', mockFetch);
+
+    // 3. Ejecutamos la llamada
+    await expect(apiCall('/ruta-falsa', {})).rejects.toThrow();
+
+    // 4. VERIFICACIÓN DE SEGURIDAD (Asserts)
+    const mensajeLogueado = consoleSpy.mock.calls[0][1] as string; // Capturamos lo que se imprimió
+    
+    // Afirmamos que NINGÚN salto de línea sobrevivió al filtro
+    expect(mensajeLogueado).not.toMatch(/[\r\n]/);
+    
+    // Afirmamos que el texto fue truncado a máximo 100 caracteres
+    expect(mensajeLogueado.length).toBeLessThanOrEqual(100);
+
+    consoleSpy.mockRestore(); // Limpiamos el espía
+  });
+  
 });

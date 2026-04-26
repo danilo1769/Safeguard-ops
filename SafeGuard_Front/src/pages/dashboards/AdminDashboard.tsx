@@ -5,100 +5,124 @@ export default function AdminDashboard() {
   const [solicitudes, setSolicitudes] = useState<any[]>([]);
   const [vigilantes, setVigilantes] = useState<any[]>([]);
   const [mensaje, setMensaje] = useState('');
-  
-  // Estado para saber qué guardia seleccionó el admin para cada solicitud
+  const [error, setError] = useState('');
   const [selecciones, setSelecciones] = useState<{ [key: string]: string }>({});
 
-  useEffect(() => {
-    cargarDatos();
-  }, []);
+  const usuarioLocal = JSON.parse(localStorage.getItem('usuarioLogueado') || '{}');
+
+  useEffect(() => { cargarDatos(); }, []);
 
   const cargarDatos = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/admin/panel');
-      const data = await response.json();
+      // Como el Admin no recibe ID por parámetro en este endpoint, hacemos un GET normal
+      const data = await apiCall('/admin/panel', null, 'GET');
       setSolicitudes(data.solicitudesPendientes);
       setVigilantes(data.vigilantes);
-    } catch (err) {
-      console.error('Error cargando panel admin', err);
-    }
+      setError('');
+    } catch (err: any) { setError(`Error de conexión con el Centro de Mando: ${err.message}`); }
   };
 
-  const handleSeleccionGuardia = (solicitudId: string, vigilanteId: string) => {
+  const handleSeleccion = (solicitudId: string, vigilanteId: string) => {
     setSelecciones({ ...selecciones, [solicitudId]: vigilanteId });
   };
 
   const handleAsignar = async (solicitudId: string) => {
-    setMensaje('');
+    setMensaje(''); setError('');
     const vigilanteId = selecciones[solicitudId];
     
-    if (!vigilanteId) {
-      setMensaje('❌ Selecciona un vigilante primero.');
-      return;
-    }
+    if (!vigilanteId) { setError('Selecciona un vigilante primero.'); return; }
 
     try {
       await apiCall('/admin/asignar', { solicitudId, vigilanteId });
-      setMensaje('✅ Turno asignado con éxito. El guardia ha sido notificado.');
-      cargarDatos(); // Recargar la tabla para que desaparezca la solicitud pendiente
-    } catch (err: any) {
-      setMensaje(`❌ Error: ${err.message}`);
-    }
+      setMensaje('✅ Turno asignado. El vigilante ha sido notificado en su App.');
+      cargarDatos(); // Recargar KPIs y Tablas
+    } catch (err: any) { setError(`❌ ${err.message}`); }
   };
 
+  // KPIs Calculados en tiempo real
+  const guardiasDisponibles = vigilantes.length;
+  const serviciosPendientes = solicitudes.length;
+
   return (
-    <div style={{ maxWidth: '1000px', margin: '30px auto', padding: '20px' }}>
-      <h2>Centro de Comando Administrativo 🌐</h2>
-      <p>Bienvenido. Aquí gestionas la operación de SafeGuard Ops.</p>
-
-      {mensaje && <div style={{ padding: '10px', background: '#e2f3e5', border: '1px solid #28a745', marginBottom: '20px' }}>
-        <strong>{mensaje}</strong>
-      </div>}
-
-      <h3>Solicitudes Pendientes de Asignación</h3>
+    <div style={{ maxWidth: '1100px', margin: '30px auto', padding: '20px', fontFamily: 'Arial, sans-serif' }}>
       
-      {solicitudes.length === 0 ? (
-        <p>No hay solicitudes pendientes. ¡Todo está bajo control!</p>
-      ) : (
-        <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse', marginTop: '10px' }}>
-          <thead>
-            <tr style={{ background: '#343a40', color: 'white' }}>
-              <th style={{ padding: '10px' }}>Ubicación</th>
-              <th style={{ padding: '10px' }}>Fecha/Hora</th>
-              <th style={{ padding: '10px' }}>Asignar Vigilante</th>
-              <th style={{ padding: '10px' }}>Acción</th>
-            </tr>
-          </thead>
-          <tbody>
-            {solicitudes.map(s => (
-              <tr key={s.id} style={{ borderBottom: '1px solid #ccc' }}>
-                <td style={{ padding: '10px' }}>{s.ubicacion}</td>
-                <td style={{ padding: '10px' }}>{new Date(s.horaInicio).toLocaleString()}</td>
-                <td style={{ padding: '10px' }}>
-                  <select 
-                    onChange={(e) => handleSeleccionGuardia(s.id, e.target.value)}
-                    value={selecciones[s.id] || ""}
-                    style={{ padding: '5px', width: '100%' }}
-                  >
-                    <option value="" disabled>-- Selecciona Vigilante --</option>
-                    {vigilantes.map(v => (
-                      <option key={v.id} value={v.id}>{v.nombre}</option>
-                    ))}
-                  </select>
-                </td>
-                <td style={{ padding: '10px' }}>
-                  <button 
-                    onClick={() => handleAsignar(s.id)}
-                    style={{ padding: '8px 15px', background: '#007BFF', color: 'white', border: 'none', cursor: 'pointer' }}
-                  >
-                    Asignar Turno
-                  </button>
-                </td>
+      {/* HEADER TIPO PANEL DE CONTROL */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#343a40', color: 'white', padding: '20px', borderRadius: '8px', marginBottom: '20px' }}>
+        <div>
+          <h2 style={{ margin: 0 }}>Centro de Comando (Admin) 🌍</h2>
+          <p style={{ margin: '5px 0 0 0', color: '#adb5bd' }}>Operador: {usuarioLocal.nombre}</p>
+        </div>
+        
+        {/* INDICADORES CLAVE (KPIs) */}
+        <div style={{ display: 'flex', gap: '20px' }}>
+          <div style={{ textAlign: 'center', background: '#495057', padding: '10px 20px', borderRadius: '5px' }}>
+            <h3 style={{ margin: 0, color: '#ffc107' }}>{serviciosPendientes}</h3>
+            <span style={{ fontSize: '12px' }}>Peticiones</span>
+          </div>
+          <div style={{ textAlign: 'center', background: '#495057', padding: '10px 20px', borderRadius: '5px' }}>
+            <h3 style={{ margin: 0, color: '#17a2b8' }}>{guardiasDisponibles}</h3>
+            <span style={{ fontSize: '12px' }}>Guardias en Stock</span>
+          </div>
+        </div>
+      </div>
+
+      {mensaje && <div style={{ padding: '12px', background: '#d4edda', color: '#155724', borderLeft: '5px solid #28a745', marginBottom: '15px' }}>{mensaje}</div>}
+      {error && <div style={{ padding: '12px', background: '#f8d7da', color: '#721c24', borderLeft: '5px solid #dc3545', marginBottom: '15px' }}>{error}</div>}
+
+      {/* SECCIÓN DE ASIGNACIÓN */}
+      <div style={{ background: '#fff', border: '1px solid #ddd', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
+        <h3 style={{ margin: 0, padding: '15px', background: '#f8f9fa', borderBottom: '1px solid #ddd' }}>📋 Solicitudes Pendientes de Asignación</h3>
+        
+        {solicitudes.length === 0 ? (
+          <p style={{ padding: '20px', textAlign: 'center', color: 'gray' }}>Excelente trabajo. No hay solicitudes pendientes.</p>
+        ) : (
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+            <thead>
+              <tr style={{ background: '#f1f3f5', fontSize: '14px', color: '#495057' }}>
+                <th style={{ padding: '12px 15px' }}>📍 Ubicación</th>
+                <th style={{ padding: '12px 15px' }}>⏱️ Horario</th>
+                <th style={{ padding: '12px 15px' }}>🛡️ Seleccionar Guardia</th>
+                <th style={{ padding: '12px 15px' }}>Acción</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+            </thead>
+            <tbody>
+              {solicitudes.map(s => (
+                <tr key={s.id} style={{ borderBottom: '1px solid #eee' }}>
+                  <td style={{ padding: '15px' }}>
+                    <strong>{s.ubicacion}</strong><br/>
+                    <span style={{ fontSize: '11px', color: 'gray' }}>GPS: {s.latitud.toFixed(4)}, {s.longitud.toFixed(4)}</span>
+                  </td>
+                  <td style={{ padding: '15px', fontSize: '13px' }}>
+                    {new Date(s.horaInicio).toLocaleString()} <br/> 
+                    <span style={{ color: 'gray' }}>hasta {new Date(s.horaFin).toLocaleTimeString()}</span>
+                  </td>
+                  <td style={{ padding: '15px' }}>
+                    <select 
+                      role="combobox"
+                      onChange={(e) => handleSeleccion(s.id, e.target.value)}
+                      value={selecciones[s.id] || ""}
+                      style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
+                    >
+                      <option value="" disabled>-- Asignar recurso --</option>
+                      {vigilantes.map(v => (
+                        <option key={v.id} value={v.id}>💂 {v.nombre}</option>
+                      ))}
+                    </select>
+                  </td>
+                  <td style={{ padding: '15px' }}>
+                    <button 
+                      onClick={() => handleAsignar(s.id)}
+                      style={{ padding: '8px 15px', background: '#007BFF', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', width: '100%' }}
+                    >
+                      Asignar Turno
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
     </div>
   );
 }
