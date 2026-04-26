@@ -1,16 +1,21 @@
 import { useState, useEffect } from 'react';
 import { apiCall } from '../../services/api';
 
+
+
 export default function ClientDashboard() {
   const [ubicacion, setUbicacion] = useState('');
   const [horaInicio, setHoraInicio] = useState('');
   const [mensaje, setMensaje] = useState('');
   const [solicitudes, setSolicitudes] = useState<any[]>([]);
+  const [horaFin, setHoraFin] = useState('');
+  const [latitud, setLatitud] = useState('');
+  const [longitud, setLongitud] = useState('');
+  
 
   // Simulamos recuperar el usuario que hizo login
   const usuarioLocal = JSON.parse(localStorage.getItem('usuarioLogueado') || '{}');
-  const clienteId = usuarioLocal.nombre || 'CLI-TEMP'; // Usamos el nombre como ID temporal
-
+  const clienteId = usuarioLocal.id;
   // Cargar solicitudes al abrir la pantalla
   useEffect(() => {
     cargarSolicitudes();
@@ -30,10 +35,16 @@ export default function ClientDashboard() {
     e.preventDefault();
     setMensaje('');
     try {
-      await apiCall('/solicitudes/crear', { clienteId, ubicacion, horaInicio });
+      await apiCall('/solicitudes/crear', { 
+    clienteId, ubicacion, horaInicio, horaFin, 
+    latitud: Number.parseFloat(latitud), longitud: Number.parseFloat(longitud) 
+  });
       setMensaje('✅ Solicitud enviada correctamente');
       setUbicacion('');
       setHoraInicio('');
+      setHoraFin('');
+      setLatitud('');
+      setLongitud('');
       cargarSolicitudes(); // Recargar la lista
     } catch (err: any) {
       setMensaje(`❌ Error: ${err.message}`);
@@ -47,17 +58,27 @@ export default function ClientDashboard() {
 
       <div style={{ padding: '20px', border: '1px solid #ccc', marginBottom: '20px' }}>
         <h3>Solicitar Nuevo Servicio de Vigilancia</h3>
+        
         <form onSubmit={handleCrearSolicitud} style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+
           <input type="text" placeholder="Ubicación (Ej. Sede Norte)" required value={ubicacion}
             onChange={e => setUbicacion(e.target.value)} />
+
+          <input type="number" step="any" placeholder="Latitud" required value={latitud} onChange={e => setLatitud(e.target.value)} />
+          
+          <input type="number" step="any" placeholder="Longitud" required value={longitud} onChange={e => setLongitud(e.target.value)} />
           
           <input type="datetime-local" required value={horaInicio}
             onChange={e => setHoraInicio(e.target.value)} />
-          
+
+          <input type="datetime-local" title="Hora de Fin" required value={horaFin} onChange={e => setHoraFin(e.target.value)} />
+
           <button type="submit" style={{ padding: '10px', background: '#28a745', color: '#fff', border: 'none' }}>
             Pedir Servicio
           </button>
+
         </form>
+
         {mensaje && <p><strong>{mensaje}</strong></p>}
       </div>
 

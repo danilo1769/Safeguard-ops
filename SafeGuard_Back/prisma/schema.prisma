@@ -25,26 +25,29 @@ model Usuario {
 model Solicitud {
   id         String   @id @default(uuid())
   ubicacion  String
+  latitud    Float    // <-- NUEVO: Para saber exactamente dónde es
+  longitud   Float    // <-- NUEVO
   horaInicio DateTime
-  estado     String   @default("Pendiente") // 'Pendiente', 'Asignado', 'Expirado'
+  horaFin    DateTime // <-- NUEVO: Para saber a qué hora termina el servicio
+  estado     String   @default("Pendiente") 
   
-  // Llave foránea hacia el Usuario (Contratante)
   clienteId  String
   cliente    Usuario  @relation(fields: [clienteId], references: [id])
-  
   createdAt  DateTime @default(now())
 }
 
+
 model Turno {
-  id             String   @id @default(uuid())
+  id             String    @id @default(uuid())
   latitudPuesto  Float
   longitudPuesto Float
   horaInicio     DateTime
-  estado         String   @default("Pendiente") // 'Pendiente', 'Completado', 'En turno'
+  horaFinEstimada DateTime // <-- NUEVO: Heredado de la solicitud
+  horaFin        DateTime? 
+  horasEfectivas Float?    
+  estado         String    @default("Pendiente") 
   
-  // Llave foránea hacia el Usuario (Vigilante)
   vigilanteId    String
-  vigilante      Usuario  @relation(fields: [vigilanteId], references: [id])
-  
-  createdAt      DateTime @default(now())
+  vigilante      Usuario   @relation(fields: [vigilanteId], references: [id])
+  createdAt      DateTime  @default(now())
 }

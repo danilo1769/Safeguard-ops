@@ -9,7 +9,12 @@ describe('Auth Controller', () => {
 
   // --- TESTS DE LOGIN ---
   it('Debe responder con status 200 y el token si el login es correcto', async () => {
-    vi.mocked(authService.loginUsuario).mockResolvedValue({ mensaje: "Login exitoso", token: "jwt", usuario: { nombre: "Juan", rol: "Vigilante" } });
+    // Búscala en la línea 12 y déjala así:
+    vi.mocked(authService.loginUsuario).mockResolvedValue({ 
+      mensaje: "Login exitoso", 
+      token: "jwt", 
+      usuario: { id: "U1", nombre: "Juan", rol: "Vigilante" } // <-- Faltaba el id aquí
+    });
     
     const req = { body: { email: 'a@a.com', password: '123' } } as Request;
     const res = { status: vi.fn().mockReturnThis(), json: vi.fn() } as unknown as Response;

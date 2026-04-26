@@ -33,8 +33,9 @@ export const asignarVigilante = async (solicitudId: string, vigilanteId: string)
       data: {
         vigilanteId: vigilante.id,
         horaInicio: solicitud.horaInicio,
-        latitudPuesto: 6.1759,
-        longitudPuesto: -75.5901,
+        horaFinEstimada: solicitud.horaFin,   // <-- Hereda la hora oficial
+        latitudPuesto: solicitud.latitud,     // <-- Usa la del cliente
+        longitudPuesto: solicitud.longitud,   // <-- Usa la del cliente
         estado: 'Pendiente'
       }
     })

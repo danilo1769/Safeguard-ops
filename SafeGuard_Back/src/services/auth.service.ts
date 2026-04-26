@@ -46,6 +46,6 @@ export const loginUsuario = async (email: string, password: string) => {
   return {
     mensaje: "Login exitoso",
     token: `fake-jwt-token-${usuario.id}`,
-    usuario: { nombre: usuario.nombre, rol: usuario.rol }
+    usuario: { id: usuario.id, nombre: usuario.nombre, rol: usuario.rol } 
   };
 };
