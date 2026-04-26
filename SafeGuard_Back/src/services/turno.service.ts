@@ -27,3 +27,10 @@ export const registrarClockOut = async (turnoId: string, latVigilante: number, l
     data: { estado: 'Completado', horaFin: horaSalida, horasEfectivas }
   });
 };
+
+export const obtenerTurnosVigilante = async (vigilanteId: string) => {
+  return await prisma.turno.findMany({
+    where: { vigilanteId: vigilanteId },
+    orderBy: { horaInicio: 'asc' } // Los ordena por fecha
+  });
+};

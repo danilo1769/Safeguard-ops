@@ -1,98 +1,96 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { apiCall } from '../../services/api';
 
 export default function GuardDashboard() {
   const [mensaje, setMensaje] = useState('');
   const [error, setError] = useState('');
   const [cargando, setCargando] = useState(false);
+  const [misTurnos, setMisTurnos] = useState<any[]>([]);
 
-  // En la vida real el backend me daría solo mis turnos, 
-  // aquí simularemos traer el ID del usuario logueado.
   const usuarioLocal = JSON.parse(localStorage.getItem('usuarioLogueado') || '{}');
+  const vigilanteId = usuarioLocal.id;
 
-  // Por ahora, para poder probar el flujo sin crear otro endpoint,
-  // permitiremos que el vigilante ponga el ID del turno que el Admin le asignó
-  const [turnoIdInput, setTurnoIdInput] = useState('');
+  useEffect(() => {
+    cargarMisTurnos();
+  }, []);
 
-  const handleAction = (tipo: 'in' | 'out') => {
-    if (!turnoIdInput) {
-      setError('Por favor, ingresa el ID de tu turno (búscalo en el panel admin para la prueba).');
-      return;
-    }
-
-    setError('');
-    setMensaje('');
-    setCargando(true);
-
-    if (tipo === 'in') {
-      // Flujo GPS (Clock-in)
-      if (!navigator.geolocation) {
-        setError('Tu navegador no soporta geolocalización.');
-        setCargando(false);
-        return;
-      }
-
-      navigator.geolocation.getCurrentPosition(
-        async (posicion) => {
-          try {
-            const res = await apiCall('/turnos/clock-in', {
-              turnoId: turnoIdInput,
-              latVigilante: posicion.coords.latitude,
-              lngVigilante: posicion.coords.longitude
-            });
-            setMensaje(`✅ ${res.mensaje}`);
-          } catch (err: any) { setError(`❌ ${err.message}`); } 
-          finally { setCargando(false); }
-        },
-        (errGeo) => {
-          setError(`Error de GPS: ${errGeo.message}`);
-          setCargando(false);
-        },
-        { enableHighAccuracy: true }
-      );
-    } else {
-      // Flujo Clock-out
-      apiCall('/turnos/clock-out', { turnoId: turnoIdInput })
-        .then(res => setMensaje(`🏁 ${res.mensaje}`))
-        .catch(err => setError(`❌ ${err.message}`))
-        .finally(() => setCargando(false));
+  const cargarMisTurnos = async () => {
+    try {
+      const response = await fetch(`http://localhost:3000/api/turnos/vigilante/${vigilanteId}`);
+      const data = await response.json();
+      setMisTurnos(data);
+    } catch (err) {
+      console.error('Error interno cargando turnos:', err); 
+      setError('Error al cargar tus turnos programados.');
     }
   };
 
+  const handleAction = (tipo: 'in' | 'out', turnoId: string) => {
+    setError(''); setMensaje(''); setCargando(true);
+
+    if (!navigator.geolocation) {
+      setError('Tu celular no soporta GPS.');
+      setCargando(false); return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (posicion) => {
+        try {
+          const endpoint = tipo === 'in' ? '/turnos/clock-in' : '/turnos/clock-out';
+          const res = await apiCall(endpoint, {
+            turnoId: turnoId,
+            latVigilante: posicion.coords.latitude,
+            lngVigilante: posicion.coords.longitude
+          });
+          setMensaje(tipo === 'in' ? `✅ ${res.mensaje}` : `🏁 ${res.mensaje}`);
+          cargarMisTurnos(); // Recargamos para que se actualice el estado a "En turno" o "Completado"
+        } catch (err: any) { setError(`❌ ${err.message}`); } 
+        finally { setCargando(false); }
+      },
+      (errGeo) => { setError(`Error GPS: ${errGeo.message}`); setCargando(false); },
+      { enableHighAccuracy: true }
+    );
+  };
+
   return (
-    <div style={{ maxWidth: '600px', margin: '50px auto', padding: '20px', textAlign: 'center' }}>
-      <h2>Dashboard del Vigilante 🛡️</h2>
-      <p>Bienvenido, Guardia {usuarioLocal.nombre}</p>
-      
-      <div style={{ margin: '30px 0', padding: '20px', border: '2px dashed #ccc' }}>
-        <p>Para esta prueba, ingresa el ID del turno que te asignó el administrador:</p>
-        <input 
-          type="text" 
-          placeholder="Ej. 123e4567-e89b-12d3..." 
-          value={turnoIdInput}
-          onChange={(e) => setTurnoIdInput(e.target.value)}
-          style={{ padding: '10px', width: '80%', marginBottom: '20px' }}
-        />
-        
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '20px' }}>
-          <button 
-            onClick={() => handleAction('in')} disabled={cargando}
-            style={{ padding: '15px', background: '#007BFF', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
-          >
-            📍 Marcar Llegada
-          </button>
+    <div style={{ maxWidth: '800px', margin: '30px auto', padding: '20px' }}>
+      <h2>Mi Agenda de Turnos 🛡️</h2>
+      <p>Agente: <strong>{usuarioLocal.nombre}</strong></p>
 
-          <button 
-            onClick={() => handleAction('out')} disabled={cargando}
-            style={{ padding: '15px', background: '#DC3545', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
-          >
-            🏁 Finalizar Turno
-          </button>
-        </div>
+      {mensaje && <div style={{ padding: '10px', background: '#d4edda', color: '#155724', marginBottom: '15px' }}>{mensaje}</div>}
+      {error && <div style={{ padding: '10px', background: '#f8d7da', color: '#721c24', marginBottom: '15px' }}>{error}</div>}
+
+      <div style={{ display: 'grid', gap: '15px' }}>
+        {misTurnos.length === 0 ? (
+          <p>No tienes turnos asignados para hoy. Descansa.</p>
+        ) : (
+          misTurnos.map(turno => (
+            <div key={turno.id} style={{ border: '1px solid #ccc', padding: '15px', borderRadius: '8px', background: turno.estado === 'Completado' ? '#f4f4f4' : '#fff' }}>
+              <h3>Turno: {new Date(turno.horaInicio).toLocaleString()}</h3>
+              <p>📍 Coordenadas: {turno.latitudPuesto}, {turno.longitudPuesto}</p>
+              <p>⏱️ Estado: <strong>{turno.estado}</strong></p>
+              
+              {turno.estado === 'Pendiente' && (
+                <button onClick={() => handleAction('in', turno.id)} disabled={cargando}
+                  style={{ padding: '10px 20px', background: '#007BFF', color: '#fff', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>
+                  {cargando ? 'Verificando GPS...' : '📍 Marcar Llegada'}
+                </button>
+              )}
+
+              {turno.estado === 'En turno' && (
+                <button onClick={() => handleAction('out', turno.id)} disabled={cargando}
+                  style={{ padding: '10px 20px', background: '#DC3545', color: '#fff', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>
+                  {cargando ? 'Calculando horas...' : '🏁 Finalizar Turno'}
+                </button>
+              )}
+
+              {turno.estado === 'Completado' && (
+                <p style={{ color: 'green' }}>✅ Completado ({turno.horasEfectivas} horas)</p>
+              )}
+            </div>
+          ))
+        )}
       </div>
-
-      {mensaje && <h3 style={{ color: 'green' }}>{mensaje}</h3>}
-      {error && <h3 style={{ color: 'red' }}>{error}</h3>}
     </div>
   );
 }

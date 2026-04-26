@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import { calcularDistanciaHaversine } from '../utils/geo';
 import { prisma } from '../config/db';
-import { registrarClockOut } from '../services/turno.service';
+import { registrarClockOut, obtenerTurnosVigilante } from '../services/turno.service';
 
 export const clockIn = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -56,5 +56,24 @@ export const clockOut = async (req: Request, res: Response): Promise<void> => {
   } catch (error: any) {
     const status = error.message.startsWith('404') ? 404 : 403; // 403 por si es fraude de GPS
     res.status(status).json({ error: error.message });
+  }
+};
+
+export const misTurnos = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { vigilanteId } = req.params;
+    
+    // 1. FIX TYPESCRIPT: Validamos que exista y sea un string
+    if (!vigilanteId || typeof vigilanteId !== 'string') {
+      res.status(400).json({ error: 'ID de vigilante inválido' });
+      return;
+    }
+
+    const turnos = await obtenerTurnosVigilante(vigilanteId);
+    res.status(200).json(turnos);
+  } catch (error: unknown) {
+    // 2. FIX SONARQUBE: Registramos el error en consola para auditoría
+    console.error(`[Auditoría] Error cargando turnos del vigilante:`, error);
+    res.status(500).json({ error: 'Error al buscar los turnos' });
   }
 };
