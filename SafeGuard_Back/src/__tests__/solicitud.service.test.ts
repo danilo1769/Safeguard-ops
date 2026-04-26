@@ -1,12 +1,17 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { crearSolicitud } from '../services/solicitud.service';
-import { solicitudesDB } from '../config/db';
+import { crearSolicitud, obtenerSolicitudesPorCliente } from '../services/solicitud.service';
+import { prisma } from '../config/db'; 
 
 describe('Solicitud Service - Reglas de Negocio', () => {
-  beforeEach(() => { solicitudesDB.length = 0; });
+  
+  // Limpiamos las tablas antes de cada prueba (El orden importa por las llaves foráneas)
+  beforeEach(async () => {
+    await prisma.solicitud.deleteMany();
+    await prisma.usuario.deleteMany();
+  });
 
   it('Debe rechazar la solicitud si la fecha de inicio está en el pasado', async () => {
-    const datos = { clienteId: 'CLI-1', ubicacion: 'Sede Principal', horaInicio: '2020-01-01T10:00' };
+    const datos = { clienteId: 'CLI-FALSO', ubicacion: 'Sede Principal', horaInicio: '2020-01-01T10:00' };
     
     await expect(crearSolicitud(datos))
       .rejects
@@ -14,21 +19,38 @@ describe('Solicitud Service - Reglas de Negocio', () => {
   });
 
   it('Debe crear la solicitud con estado "Pendiente" si la fecha es válida', async () => {
-    // Usamos una fecha del futuro asegurada
-    const fechaFutura = new Date(Date.now() + 86400000).toISOString(); // Mañana
-    const datos = { clienteId: 'CLI-1', ubicacion: 'Sede Principal', horaInicio: fechaFutura };
+    // 1. Para probar, primero debemos crear un Cliente real en SQLite
+    const cliente = await prisma.usuario.create({
+      data: { nombre: 'Wayne Corp', email: 'w@test.com', passwordHash: '123', rol: 'Contratante' }
+    });
+
+    // 2. Usamos una fecha del futuro
+    const fechaFutura = new Date(Date.now() + 86400000).toISOString(); 
+    const datos = { clienteId: cliente.id, ubicacion: 'Sede Principal', horaInicio: fechaFutura };
     
+    // 3. Ejecutamos la función
     const nuevaSolicitud = await crearSolicitud(datos);
     
     expect(nuevaSolicitud.estado).toBe('Pendiente');
-    expect(solicitudesDB).toHaveLength(1);
+    
+    // Verificamos directo en la BD
+    const enBD = await prisma.solicitud.findUnique({ where: { id: nuevaSolicitud.id } });
+    expect(enBD).not.toBeNull();
   });
 
   it('Debe retornar las solicitudes filtradas por cliente', async () => {
-    solicitudesDB.push({ id: 'S1', clienteId: 'CLI-99', ubicacion: 'A', horaInicio: '2030-01-01', estado: 'Pendiente' });
-    const resultados = await import('../services/solicitud.service').then(m => m.obtenerSolicitudesPorCliente('CLI-99'));
-    expect(resultados).toHaveLength(1);
-    expect(resultados[0]?.clienteId).toBe('CLI-99');
-  });
+    // Creamos Cliente
+    const cliente = await prisma.usuario.create({
+      data: { nombre: 'Stark Ind', email: 's@test.com', passwordHash: '123', rol: 'Contratante' }
+    });
+    
+    // Creamos Solicitud directo en la BD
+    await prisma.solicitud.create({
+      data: { clienteId: cliente.id, ubicacion: 'A', horaInicio: new Date(Date.now() + 86400000), estado: 'Pendiente' }
+    });
 
+    const resultados = await obtenerSolicitudesPorCliente(cliente.id);
+    expect(resultados).toHaveLength(1);
+    expect(resultados[0]?.clienteId).toBe(cliente.id);
+  });
 });

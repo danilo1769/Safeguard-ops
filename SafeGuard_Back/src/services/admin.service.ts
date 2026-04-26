@@ -24,7 +24,7 @@ export const asignarVigilante = async (solicitudId: string, vigilanteId: string)
   if (cruceHorario) throw new Error('400: Vigilante Ocupado. Ya tiene un turno asignado en esa fecha y hora.');
 
   // Transacción Pro-Code: Actualizamos solicitud y creamos turno al mismo tiempo
-  const [solicitudActualizada, nuevoTurno] = await prisma.$transaction([
+  const [, nuevoTurno] = await prisma.$transaction([
     prisma.solicitud.update({
       where: { id: solicitudId },
       data: { estado: 'Asignado' }
