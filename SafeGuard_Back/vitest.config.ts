@@ -3,7 +3,12 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     globals: true,
-    // @ts-ignore - Le decimos a TypeScript que no audite esta línea en la v4.1.5
-    fileParallelism: false
+    // @ts-ignore
+    fileParallelism: false,
+    coverage: {
+      provider: 'v8',           // Motor de cobertura de Node
+      reporter: ['text', 'lcov'], // 'text' es para tu terminal, 'lcov' es para SonarQube
+      reportsDirectory: './coverage', // Dónde se guardará el archivo
+    }
   }
 });
