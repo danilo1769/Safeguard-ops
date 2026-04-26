@@ -8,6 +8,7 @@ import adminRoutes from './routes/admin.routes';
 import { iniciarCronJobs, detenerCronJobs } from './jobs/cron.job';
 
 const app = express();
+app.disable('x-powered-by');
 const PORT = 3000;
 
 app.use(cors({

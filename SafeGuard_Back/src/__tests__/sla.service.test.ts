@@ -42,4 +42,24 @@ describe('SLA Service - Reporte de Ausencias', () => {
     const actualizado = await reportarAusencia(turno.id);
     expect(actualizado.estado).toBe('Ausencia Reportada');
   });
+
+  it('Debe rechazar el reporte si el vigilante ya hizo Clock-in (En turno)', async () => {
+    const admin = await prisma.usuario.create({ data: { nombre: 'A', email: 'c@c.com', passwordHash: '1', rol: 'Vigilante' } });
+    
+    // El turno empezó hace 20 minutos (ya pasaron los 15 mins de regla)
+    const fechaHace20Mins = new Date(Date.now() - (20 * 60 * 1000));
+    
+    const turno = await prisma.turno.create({
+      data: { 
+        vigilanteId: admin.id, latitudPuesto: 0, longitudPuesto: 0, 
+        horaInicio: fechaHace20Mins, horaFinEstimada: new Date(), 
+        estado: 'En turno' // <-- ¡EL GUARDIA YA LLEGÓ!
+      }
+    });
+
+    // Intentamos reportarlo y el backend debe bloquearlo
+    await expect(reportarAusencia(turno.id))
+      .rejects.toThrow('400: El turno ya fue atendido o completado.');
+  });
+  
 });
