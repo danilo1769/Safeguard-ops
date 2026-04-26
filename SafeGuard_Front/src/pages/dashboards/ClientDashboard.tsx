@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { apiCall } from '../../services/api';
-
-
+import MapaSelector from '../../components/MapaSelector';
 
 export default function ClientDashboard() {
   const [ubicacion, setUbicacion] = useState('');
@@ -9,8 +8,8 @@ export default function ClientDashboard() {
   const [mensaje, setMensaje] = useState('');
   const [solicitudes, setSolicitudes] = useState<any[]>([]);
   const [horaFin, setHoraFin] = useState('');
-  const [latitud, setLatitud] = useState('');
-  const [longitud, setLongitud] = useState('');
+  const [latitud, setLatitud] = useState('6.1759'); 
+  const [longitud, setLongitud] = useState('-75.5901');
   
 
   // Simulamos recuperar el usuario que hizo login
@@ -59,24 +58,40 @@ export default function ClientDashboard() {
       <div style={{ padding: '20px', border: '1px solid #ccc', marginBottom: '20px' }}>
         <h3>Solicitar Nuevo Servicio de Vigilancia</h3>
         
-        <form onSubmit={handleCrearSolicitud} style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-
-          <input type="text" placeholder="Ubicación (Ej. Sede Norte)" required value={ubicacion}
-            onChange={e => setUbicacion(e.target.value)} />
-
-          <input type="number" step="any" placeholder="Latitud" required value={latitud} onChange={e => setLatitud(e.target.value)} />
+        <form onSubmit={handleCrearSolicitud} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
           
-          <input type="number" step="any" placeholder="Longitud" required value={longitud} onChange={e => setLongitud(e.target.value)} />
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <input type="text" placeholder="Nombre de Ubicación (Ej. Edificio Central)" required value={ubicacion}
+              onChange={e => setUbicacion(e.target.value)} style={{ flex: 1, padding: '8px' }} />
+            
+            <input type="datetime-local" title="Hora de Inicio" required value={horaInicio}
+              onChange={e => setHoraInicio(e.target.value)} style={{ padding: '8px' }} />
+              
+            <input type="datetime-local" title="Hora de Fin" required value={horaFin}
+              onChange={e => setHoraFin(e.target.value)} style={{ padding: '8px' }} />
+          </div>
+
+          <div style={{ width: '100%' }}>
+            <p style={{ margin: '0 0 10px 0', fontWeight: 'bold' }}>📍 Haz clic en el mapa para marcar el puesto de vigilancia:</p>
+            
+            {/* AQUÍ VIVE NUESTRO MAPA */}
+            <MapaSelector
+              latitud={Number.parseFloat(latitud)}
+              longitud={Number.parseFloat(longitud)}
+              onLocationSelect={(lat, lng) => {
+                setLatitud(lat.toString());
+                setLongitud(lng.toString());
+              }}
+            />
+
+            <p style={{ fontSize: '12px', color: 'gray', marginTop: '5px' }}>
+              Coordenadas exactas: {latitud}, {longitud}
+            </p>
+          </div>
           
-          <input type="datetime-local" required value={horaInicio}
-            onChange={e => setHoraInicio(e.target.value)} />
-
-          <input type="datetime-local" title="Hora de Fin" required value={horaFin} onChange={e => setHoraFin(e.target.value)} />
-
-          <button type="submit" style={{ padding: '10px', background: '#28a745', color: '#fff', border: 'none' }}>
-            Pedir Servicio
+          <button type="submit" style={{ padding: '12px', background: '#28a745', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}>
+            Confirmar y Pedir Servicio
           </button>
-
         </form>
 
         {mensaje && <p><strong>{mensaje}</strong></p>}
