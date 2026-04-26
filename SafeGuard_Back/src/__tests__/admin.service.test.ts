@@ -1,66 +1,70 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { registrarUsuario, loginUsuario } from '../services/auth.service';
-import { prisma } from '../config/db'; // Importamos prisma
+import { obtenerDatosPanelAdmin, asignarVigilante } from '../services/admin.service';
+import { prisma } from '../config/db';
 
-describe('Auth Service - Reglas de Negocio', () => {
+describe('Admin Service - Reglas de Asignación (Base de Datos Real)', () => {
   
-  // Limpiamos la tabla real de SQLite antes de cada test
   beforeEach(async () => {
-    await prisma.usuario.deleteMany(); 
+    // Limpiamos la base de datos en el orden correcto
+    await prisma.turno.deleteMany();
+    await prisma.solicitud.deleteMany();
+    await prisma.usuario.deleteMany();
   });
 
-  it('Debe rechazar el registro si la contraseña tiene menos de 8 caracteres (Norma NIST)', async () => {
-    const datosMalos = { nombre: 'Juan', email: 'juan@test.com', passwordHash: '123', rol: 'Vigilante' };
+  it('Debe retornar las solicitudes pendientes y los vigilantes', async () => {
+    // 1. Preparamos los datos
+    const cliente = await prisma.usuario.create({ data: { nombre: 'C1', email: 'c1@test.com', passwordHash: '123', rol: 'Contratante' } });
+    await prisma.usuario.create({ data: { nombre: 'V1', email: 'v1@test.com', passwordHash: '123', rol: 'Vigilante' } });
+    await prisma.solicitud.create({ data: { clienteId: cliente.id, ubicacion: 'Sede A', horaInicio: new Date(), estado: 'Pendiente' } });
+
+    // 2. Ejecutamos
+    const datos = await obtenerDatosPanelAdmin();
     
-    await expect(registrarUsuario(datosMalos))
-      .rejects
-      .toThrow('400: La contraseña debe tener mínimo 8 caracteres');
+    // 3. Validamos
+    expect(datos.solicitudesPendientes).toHaveLength(1);
+    expect(datos.vigilantes).toHaveLength(1);
   });
 
-  it('Debe registrar un usuario correctamente y agregarlo a la BD', async () => {
-    const datosBuenos = { nombre: 'Ana', email: 'ana@test.com', passwordHash: 'Admin1234', rol: 'Administrativo' };
-    
-    const usuario = await registrarUsuario(datosBuenos);
-    
-    expect(usuario).toHaveProperty('id');
-    
-    // Verificamos directo en la BD real
-    const enBD = await prisma.usuario.findUnique({ where: { email: 'ana@test.com' } });
-    expect(enBD).not.toBeNull(); 
+  it('Debe lanzar error 404 si la solicitud o el vigilante no existen', async () => {
+    await expect(asignarVigilante('ID-FALSO', 'VIG-FALSO'))
+      .rejects.toThrow('404: Solicitud no encontrada');
   });
 
-  it('Debe rechazar el registro si el correo ya existe', async () => {
-    const datos = { nombre: 'Juan', email: 'juan@test.com', passwordHash: 'Admin1234', rol: 'Vigilante' };
-    await registrarUsuario(datos); 
+  it('Debe rechazar la asignación si el vigilante ya tiene un turno a esa misma hora', async () => {
+    const cliente = await prisma.usuario.create({ data: { nombre: 'C1', email: 'c1@test.com', passwordHash: '123', rol: 'Contratante' } });
+    const vigilante = await prisma.usuario.create({ data: { nombre: 'Batman', email: 'b@b.com', passwordHash: '123', rol: 'Vigilante' } });
     
-    await expect(registrarUsuario(datos))
-      .rejects
-      .toThrow('400: El correo ya está registrado');
+    const fechaHora = new Date('2026-10-10T08:00:00Z');
+
+    const solicitud = await prisma.solicitud.create({ 
+      data: { clienteId: cliente.id, ubicacion: 'Sede A', horaInicio: fechaHora, estado: 'Pendiente' } 
+    });
+
+    // Le creamos un turno previo EXACTAMENTE a esa hora
+    await prisma.turno.create({
+      data: { vigilanteId: vigilante.id, latitudPuesto: 0, longitudPuesto: 0, horaInicio: fechaHora, estado: 'Pendiente' }
+    });
+
+    // Intentamos asignar la nueva solicitud
+    await expect(asignarVigilante(solicitud.id, vigilante.id))
+      .rejects.toThrow('400: Vigilante Ocupado. Ya tiene un turno asignado en esa fecha y hora.');
   });
 
-  it('Debe rechazar el login si la contraseña es incorrecta', async () => {
-    const datos = { nombre: 'Ana', email: 'ana@test.com', passwordHash: 'Admin1234', rol: 'Administrativo' };
-    await registrarUsuario(datos);
-
-    await expect(loginUsuario('ana@test.com', 'ClaveEquivocada'))
-      .rejects
-      .toThrow('401: Credenciales inválidas');
-  });
-
-  it('Debe hacer login exitosamente y retornar el token y usuario', async () => {
-    const datos = { nombre: 'Pedro', email: 'pedro@test.com', passwordHash: 'Admin1234', rol: 'Contratante' };
-    await registrarUsuario(datos);
-
-    const respuesta = await loginUsuario('pedro@test.com', 'Admin1234');
+  it('Debe asignar el turno correctamente usando una Transacción', async () => {
+    const cliente = await prisma.usuario.create({ data: { nombre: 'C1', email: 'c1@test.com', passwordHash: '123', rol: 'Contratante' } });
+    const vigilante = await prisma.usuario.create({ data: { nombre: 'Robin', email: 'r@r.com', passwordHash: '123', rol: 'Vigilante' } });
     
-    expect(respuesta.mensaje).toBe('Login exitoso');
-    expect(respuesta).toHaveProperty('token');
-    expect(respuesta.usuario.rol).toBe('Contratante');
-  });
+    const solicitud = await prisma.solicitud.create({ 
+      data: { clienteId: cliente.id, ubicacion: 'Sede B', horaInicio: new Date(), estado: 'Pendiente' } 
+    });
 
-  it('Debe rechazar el login si el correo no existe', async () => {
-    await expect(loginUsuario('fantasma@test.com', 'Admin1234'))
-      .rejects
-      .toThrow('401: Credenciales inválidas');
+    // Ejecutamos la asignación (La transacción)
+    const nuevoTurno = await asignarVigilante(solicitud.id, vigilante.id);
+    
+    expect(nuevoTurno.vigilanteId).toBe(vigilante.id);
+    
+    // Verificamos que la solicitud cambió a 'Asignado' en la base de datos
+    const solicitudActualizada = await prisma.solicitud.findUnique({ where: { id: solicitud.id } });
+    expect(solicitudActualizada?.estado).toBe('Asignado');
   });
 });

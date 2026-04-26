@@ -6,8 +6,9 @@ describe('Solicitud Service - Reglas de Negocio', () => {
   
   // Limpiamos las tablas antes de cada prueba (El orden importa por las llaves foráneas)
   beforeEach(async () => {
-    await prisma.solicitud.deleteMany();
-    await prisma.usuario.deleteMany();
+    await prisma.turno.deleteMany();     
+    await prisma.solicitud.deleteMany(); 
+    await prisma.usuario.deleteMany();   
   });
 
   it('Debe rechazar la solicitud si la fecha de inicio está en el pasado', async () => {
