@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { apiCall } from '../../services/api';
+import { apiCall } from '../../services/api'; 
 
 export default function GuardDashboard() {
   const [mensaje, setMensaje] = useState('');
@@ -8,20 +8,25 @@ export default function GuardDashboard() {
   const [misTurnos, setMisTurnos] = useState<any[]>([]);
 
   const usuarioLocal = JSON.parse(localStorage.getItem('usuarioLogueado') || '{}');
-  const vigilanteId = usuarioLocal.id;
+  const vigilanteId = usuarioLocal.id; // ¡Asegúrate de que diga .id y no .nombre!
 
   useEffect(() => {
     cargarMisTurnos();
   }, []);
 
   const cargarMisTurnos = async () => {
+    if (!vigilanteId) {
+      setError('Sesión expirada. Por favor, vuelve a iniciar sesión.');
+      return;
+    }
     try {
-      const response = await fetch(`http://localhost:3000/api/turnos/vigilante/${vigilanteId}`);
-      const data = await response.json();
+      // Usamos nuestro puente, le pasamos 'null' en datos, y le decimos que es un 'GET'
+      const data = await apiCall(`/turnos/vigilante/${vigilanteId}`, null, 'GET');
       setMisTurnos(data);
-    } catch (err) {
-      console.error('Error interno cargando turnos:', err); 
-      setError('Error al cargar tus turnos programados.');
+      setError(''); 
+    } catch (err: any) {
+      console.error('Error interno:', err); 
+      setError(`Error al cargar turnos: ${err.message}`);
     }
   };
 
