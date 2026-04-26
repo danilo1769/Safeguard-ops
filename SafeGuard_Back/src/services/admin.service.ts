@@ -41,6 +41,32 @@ export const asignarVigilante = async (solicitudId: string, vigilanteId: string)
       }
     })
   ]);
-
   return nuevoTurno;
+};
+
+export const generarReporteNominaCSV = async () => {
+  // Buscamos todos los turnos completados, incluyendo los datos del vigilante
+  const turnosCompletados = await prisma.turno.findMany({
+    where: { estado: 'Completado' },
+    include: { vigilante: true }
+  });
+
+  if (turnosCompletados.length === 0) {
+    throw new Error('404: No hay turnos completados para generar el reporte.');
+  }
+
+  // 1. Creamos las cabeceras del archivo Excel/CSV
+  let csvString = 'ID Turno,Guardia,Email,Fecha Inicio,Fecha Fin,Horas Efectivas\n';
+
+  // 2. Llenamos las filas con los datos
+  turnosCompletados.forEach(turno => {
+    const fechaIn = new Date(turno.horaInicio).toLocaleString();
+    const fechaOut = turno.horaFin ? new Date(turno.horaFin).toLocaleString() : 'N/A';
+    const horas = turno.horasEfectivas || 0;
+
+    // Concatenamos separando por comas
+    csvString += `${turno.id},${turno.vigilante.nombre},${turno.vigilante.email},${fechaIn},${fechaOut},${horas}\n`;
+  });
+
+  return csvString;
 };

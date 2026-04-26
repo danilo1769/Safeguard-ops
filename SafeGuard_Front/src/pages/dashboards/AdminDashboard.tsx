@@ -43,6 +43,35 @@ export default function AdminDashboard() {
   const guardiasDisponibles = vigilantes.length;
   const serviciosPendientes = solicitudes.length;
 
+  const handleDescargarReporte = async () => {
+    setMensaje(''); setError('');
+    try {
+      const response = await fetch('http://localhost:3000/api/admin/reporte-nomina');
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error);
+      }
+
+      // Convertimos la respuesta en un Archivo (Blob)
+      const blob = await response.blob();
+      const url = globalThis.URL.createObjectURL(blob);
+      
+      // Truco Pro-Code: Creamos un <a> invisible, le hacemos clic y lo borramos
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'Reporte_Nomina_SafeGuard.csv';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      globalThis.URL.revokeObjectURL(url); // Limpiamos memoria
+
+      setMensaje('✅ Reporte descargado exitosamente.');
+    } catch (err: any) {
+      setError(`❌ Error al descargar: ${err.message}`);
+    }
+  };
+
   return (
     <div style={{ maxWidth: '1100px', margin: '30px auto', padding: '20px', fontFamily: 'Arial, sans-serif' }}>
       
@@ -63,6 +92,9 @@ export default function AdminDashboard() {
             <h3 style={{ margin: 0, color: '#17a2b8' }}>{guardiasDisponibles}</h3>
             <span style={{ fontSize: '12px' }}>Guardias en Stock</span>
           </div>
+          <button onClick={handleDescargarReporte} style={{ padding: '15px 20px', background: '#28a745', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold', height: 'fit-content' }}>
+            📊 Descargar Nómina
+          </button>
         </div>
       </div>
 
