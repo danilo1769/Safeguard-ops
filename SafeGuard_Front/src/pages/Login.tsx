@@ -14,13 +14,21 @@ export default function Login() {
     try {
       const data = await apiCall('/auth/login', { email, password });
       
-      // Guardamos en la memoria del navegador quién es el usuario actual
-      localStorage.setItem('usuarioLogueado', JSON.stringify(data.usuario));
+      // FIX DE SEGURIDAD SONARQUBE (Taint Analysis S8475)
+      // Sanitizamos los datos: Aseguramos que sean strings puros y descartamos basura inyectada
+      const usuarioSanitizado = {
+        id: String(data.usuario.id),
+        // Expresión regular básica para borrar símbolos extraños (< >) y evitar inyección HTML
+        nombre: String(data.usuario.nombre).replaceAll(/[<>]/g, ""),
+        rol: String(data.usuario.rol)
+      };
 
-      // ¡AQUÍ USAMOS TU NAVIGATE! Redirección inteligente por roles
-      if (data.usuario.rol === 'Administrativo') {
+      // Guardamos el objeto limpio, NO el radiactivo
+      localStorage.setItem('usuarioLogueado', JSON.stringify(usuarioSanitizado));
+
+      if (usuarioSanitizado.rol === 'Administrativo') {
         navigate('/dashboard-admin');
-      } else if (data.usuario.rol === 'Contratante') {
+      } else if (usuarioSanitizado.rol === 'Contratante') {
         navigate('/dashboard-cliente');
       } else {
         navigate('/dashboard-vigilante');

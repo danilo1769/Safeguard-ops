@@ -15,7 +15,7 @@ export default function ClientDashboard() {
   const [ahora, setAhora] = useState(Date.now());
 
   const usuarioLocal = JSON.parse(localStorage.getItem('usuarioLogueado') || '{}');
-  const clienteId = usuarioLocal.id;
+  const clienteId = encodeURIComponent(String(usuarioLocal.id || ''));
 
   useEffect(() => {
     cargarSolicitudes();

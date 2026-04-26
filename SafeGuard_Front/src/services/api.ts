@@ -20,9 +20,17 @@ export const apiCall = async (endpoint: string, data?: any, method: string = 'PO
     if (!response.ok) throw new Error(json.error || 'Error en la petición');
     return json;
   } else {
-    // Si el servidor mandó HTML (<!DOCTYPE...>), capturamos el texto y lanzamos un error claro
+    // Si el servidor mandó HTML, capturamos el texto
     const textoHtml = await response.text();
-    console.error("El servidor respondió con HTML en lugar de JSON:", textoHtml);
-    throw new Error(`Error de conexión (Ruta no encontrada o servidor caído). Status: ${response.status}`);
+    
+    // FIX DE SEGURIDAD 2: Prevención de Log Injection.
+    // 1. Reemplazamos todos los saltos de línea (\r y \n) por un espacio vacío.
+    // 2. Limitamos el error a 100 caracteres máximo para que no desborden la memoria.
+    const textoSeguro = textoHtml.replaceAll(/[\r\n]+/g, ' ').substring(0, 100);
+    
+    // Ahora es 100% seguro imprimirlo
+    console.error("Respuesta inesperada del servidor (truncada):", textoSeguro);
+    
+    throw new Error(`Error de conexión (Ruta no encontrada). Status: ${response.status}`);
   }
 };

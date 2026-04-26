@@ -9,7 +9,7 @@ export default function GuardDashboard() {
   const [misTurnos, setMisTurnos] = useState<any[]>([]);
 
   const usuarioLocal = JSON.parse(localStorage.getItem('usuarioLogueado') || '{}');
-  const vigilanteId = usuarioLocal.id;
+  const vigilanteId = encodeURIComponent(String(usuarioLocal.id || ''));
 
   useEffect(() => { cargarMisTurnos(); }, []);
 
