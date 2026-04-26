@@ -1,27 +1,26 @@
 import { prisma } from '../config/db';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 
-// Usamos un tipo genérico temporal, pero luego usaremos los de Prisma
+const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret';
+
 export const registrarUsuario = async (datos: { nombre: string, email: string, passwordHash: string, rol: string }) => {
-  // 1. Regla NIST
   if (datos.passwordHash.length < 8) {
     throw new Error('400: La contraseña debe tener mínimo 8 caracteres');
   }
 
-  // 2. Buscar si existe en la BD Real
-  const existe = await prisma.usuario.findUnique({
-    where: { email: datos.email }
-  });
+  const existe = await prisma.usuario.findUnique({ where: { email: datos.email } });
+  if (existe) throw new Error('400: El correo ya está registrado');
 
-  if (existe) {
-    throw new Error('400: El correo ya está registrado');
-  }
+  // FIX DE SEGURIDAD 1: Encriptación Bcrypt (Regla del PDF)
+  const saltRounds = 10;
+  const claveEncriptada = await bcrypt.hash(datos.passwordHash, saltRounds);
 
-  // 3. Insertar en la BD Real
   const nuevoUsuario = await prisma.usuario.create({
     data: {
       nombre: datos.nombre,
       email: datos.email,
-      passwordHash: datos.passwordHash,
+      passwordHash: claveEncriptada, // Guardamos el Hash, NUNCA la clave real
       rol: datos.rol
     }
   });
@@ -30,22 +29,23 @@ export const registrarUsuario = async (datos: { nombre: string, email: string, p
 };
 
 export const loginUsuario = async (email: string, password: string) => {
-  // Buscar en la BD Real
-  const usuario = await prisma.usuario.findUnique({
-    where: { email: email }
-  });
-  
-  if (!usuario) {
-    throw new Error('401: Credenciales inválidas');
-  }
+  const usuario = await prisma.usuario.findUnique({ where: { email: email } });
+  if (!usuario) throw new Error('401: Credenciales inválidas');
 
-  if (usuario.passwordHash !== password) {
-    throw new Error('401: Credenciales inválidas');
-  }
+  // FIX DE SEGURIDAD 2: Comparación Criptográfica
+  const esValida = await bcrypt.compare(password, usuario.passwordHash);
+  if (!esValida) throw new Error('401: Credenciales inválidas');
+
+  // FIX DE SEGURIDAD 3: Generación de JWT Real
+  const token = jwt.sign(
+    { id: usuario.id, rol: usuario.rol }, 
+    JWT_SECRET, 
+    { expiresIn: '8h' } // El token expira en 8 horas por seguridad
+  );
 
   return {
     mensaje: "Login exitoso",
-    token: `fake-jwt-token-${usuario.id}`,
-    usuario: { id: usuario.id, nombre: usuario.nombre, rol: usuario.rol } 
+    token: token,
+    usuario: { id: usuario.id, nombre: usuario.nombre, rol: usuario.rol }
   };
 };

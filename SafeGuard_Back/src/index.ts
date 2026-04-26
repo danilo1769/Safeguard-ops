@@ -9,7 +9,11 @@ import adminRoutes from './routes/admin.routes';
 const app = express();
 const PORT = 3000;
 
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173', // Solo tu App de React puede pedir datos
+  methods: ['GET', 'POST', 'PUT', 'DELETE']
+}));
+
 app.use(express.json());
 
 // <-- CONECTA LAS RUTAS AQUÍ

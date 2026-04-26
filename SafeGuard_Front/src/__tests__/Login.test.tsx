@@ -1,11 +1,20 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import Login from '../pages/Login';
 import * as api from '../services/api';
 
 // Interceptamos la llamada al backend para no necesitar internet
 vi.mock('../services/api');
+
+const mockNavigate = vi.fn();
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
+  return {
+    ...actual as any,
+    useNavigate: () => mockNavigate, // Atrapamos la navegación
+  };
+});
 
 describe('Vista de Login (UI)', () => {
   
@@ -39,12 +48,10 @@ describe('Vista de Login (UI)', () => {
   });
 
   it('Debe redirigir al Dashboard Administrativo si el login es exitoso y el rol es correcto', async () => {
-    // 1. Simulamos un API exitoso
     vi.mocked(api.apiCall).mockResolvedValue({
       usuario: { nombre: "Admin", rol: "Administrativo" }
     });
 
-    // 2. Simulamos el LocalStorage del navegador
     const mockSetItem = vi.spyOn(Storage.prototype, 'setItem');
 
     render(<BrowserRouter><Login /></BrowserRouter>);
@@ -52,16 +59,13 @@ describe('Vista de Login (UI)', () => {
     fireEvent.change(screen.getByPlaceholderText('Correo electrónico'), { target: { value: 'admin@seracis.com' } });
     fireEvent.change(screen.getByPlaceholderText('Contraseña'), { target: { value: 'Admin1234' } });
     
-    // Hacemos clic
     fireEvent.click(screen.getByRole('button', { name: 'Entrar' }));
 
-    // Esperamos que se haya guardado el usuario en memoria
-    await vi.waitFor(() => {
+    await waitFor(() => {
       expect(mockSetItem).toHaveBeenCalledWith('usuarioLogueado', expect.any(String));
+      // Verificamos que se llamó la redirección hacia el dashboard admin
+      expect(mockNavigate).toHaveBeenCalledWith('/dashboard-admin'); 
     });
-
-    // Como usamos <BrowserRouter>, React internamente cambiaría la ruta.
-    // Esto cubre todas las líneas restantes (18-26) del caso exitoso.
   });
 
 });
