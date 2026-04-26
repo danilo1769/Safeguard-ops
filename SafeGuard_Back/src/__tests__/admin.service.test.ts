@@ -30,14 +30,30 @@ describe('Admin Service - Reglas de Asignación', () => {
     
     const fechaHora = new Date('2030-10-10T08:00:00Z');
 
+    // Esta es la solicitud nueva que intentaremos asignarle
     const solicitud = await prisma.solicitud.create({ 
       data: { clienteId: cliente.id, ubicacion: 'A', horaInicio: fechaHora, horaFin: fechaHora, latitud: 0, longitud: 0, estado: 'Pendiente' } 
     });
 
-    await prisma.turno.create({
-      data: { vigilanteId: vigilante.id, latitudPuesto: 0, longitudPuesto: 0, horaInicio: fechaHora, horaFinEstimada: fechaHora, estado: 'Pendiente' }
+    // FIX: Creamos una solicitud REAL previa para que el turno previo tenga donde anclarse
+    const solicitudPrevia = await prisma.solicitud.create({ 
+      data: { clienteId: cliente.id, ubicacion: 'B', horaInicio: fechaHora, horaFin: fechaHora, latitud: 0, longitud: 0, estado: 'Asignado' } 
     });
 
+    // Le creamos el turno ocupado asociado a la solicitud real
+    await prisma.turno.create({
+      data: { 
+        vigilanteId: vigilante.id, 
+        solicitudId: solicitudPrevia.id, // <-- AQUÍ USAMOS EL ID REAL
+        latitudPuesto: 0, 
+        longitudPuesto: 0, 
+        horaInicio: fechaHora, 
+        horaFinEstimada: fechaHora, 
+        estado: 'Pendiente' 
+      }
+    });
+
+    // Intentamos asignarle la nueva, ¡debe explotar!
     await expect(asignarVigilante(solicitud.id, vigilante.id)).rejects.toThrow('400: Vigilante Ocupado.');
   });
 

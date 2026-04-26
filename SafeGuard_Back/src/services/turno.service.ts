@@ -34,3 +34,27 @@ export const obtenerTurnosVigilante = async (vigilanteId: string) => {
     orderBy: { horaInicio: 'asc' } // Los ordena por fecha
   });
 };
+
+export const reportarAusencia = async (turnoId: string) => {
+  const turno = await prisma.turno.findUnique({ where: { id: turnoId } });
+  if (!turno) throw new Error('404: Turno no encontrado');
+
+  if (turno.estado !== 'Pendiente') {
+    throw new Error('400: El turno ya fue atendido o completado.');
+  }
+
+  const ahora = new Date();
+  const QUINCE_MINUTOS = 15 * 60 * 1000;
+  const tiempoTranscurrido = ahora.getTime() - new Date(turno.horaInicio).getTime();
+
+  // REGLA DEL PDF: Validación estricta de 15 minutos
+  if (tiempoTranscurrido < QUINCE_MINUTOS) {
+    throw new Error('403: Aún no han pasado 15 minutos de gracia. Por favor, espera.');
+  }
+
+  // Ejecutamos el castigo (Ausencia Reportada)
+  return await prisma.turno.update({
+    where: { id: turnoId },
+    data: { estado: 'Ausencia Reportada' }
+  });
+};

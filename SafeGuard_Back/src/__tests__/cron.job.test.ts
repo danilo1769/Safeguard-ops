@@ -57,4 +57,15 @@ describe('Auditoría Nativa (CRON Job)', () => {
     // Verificamos que el sistema detectó y advirtió sobre la anomalía
     expect(console.warn).toHaveBeenCalledWith('⚠️ Intento de iniciar múltiples robots bloqueado.');
   });
+
+  it('Debe atrapar errores si la base de datos se cae durante el cron', async () => {
+    vi.mocked(prisma.solicitud.findMany).mockRejectedValue(new Error('Caída DB'));
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    
+    iniciarCronJobs();
+    await vi.advanceTimersByTimeAsync(5 * 60 * 1000);
+    
+    expect(consoleSpy).toHaveBeenCalledWith('[AUDITORÍA SLA] Error ejecutando la limpieza automática:', expect.any(Error));
+  });
+  
 });

@@ -38,4 +38,10 @@ describe('Solicitud Service - Reglas de Negocio', () => {
     const resultados = await obtenerSolicitudesPorCliente(cliente.id);
     expect(resultados).toHaveLength(1);
   });
+
+  it('Debe rechazar la solicitud si falta el clienteId', async () => {
+    const datosMalos = { clienteId: '', ubicacion: 'A', horaInicio: '2030-01-01', horaFin: '2030-01-01', latitud: 0, longitud: 0 };
+    await expect(crearSolicitud(datosMalos)).rejects.toThrow('400: Error de sesión');
+  });
+  
 });

@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import { calcularDistanciaHaversine } from '../utils/geo';
 import { prisma } from '../config/db';
-import { registrarClockOut, obtenerTurnosVigilante } from '../services/turno.service';
+import { registrarClockOut, obtenerTurnosVigilante, reportarAusencia } from '../services/turno.service';
 
 export const clockIn = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -75,5 +75,18 @@ export const misTurnos = async (req: Request, res: Response): Promise<void> => {
     // 2. FIX SONARQUBE: Registramos el error en consola para auditoría
     console.error(`[Auditoría] Error cargando turnos del vigilante:`, error);
     res.status(500).json({ error: 'Error al buscar los turnos' });
+  }
+};
+
+export const reportarFalta = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { turnoId } = req.body;
+    if (!turnoId) { res.status(400).json({ error: 'Falta ID' }); return; }
+    
+    const turno = await reportarAusencia(turnoId);
+    res.status(200).json({ mensaje: 'Ausencia reportada con éxito. Enviaremos un reemplazo.', turno });
+  } catch (error: any) {
+    const status = error.message.startsWith('40') ? Number.parseInt(error.message.substring(0, 3)) : 500;
+    res.status(status).json({ error: error.message });
   }
 };

@@ -32,6 +32,7 @@ export const asignarVigilante = async (solicitudId: string, vigilanteId: string)
     prisma.turno.create({
       data: {
         vigilanteId: vigilante.id,
+        solicitudId: solicitudId,
         horaInicio: solicitud.horaInicio,
         horaFinEstimada: solicitud.horaFin,   // <-- Hereda la hora oficial
         latitudPuesto: solicitud.latitud,     // <-- Usa la del cliente

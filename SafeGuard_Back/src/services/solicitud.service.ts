@@ -29,6 +29,7 @@ export const crearSolicitud = async (datos: { clienteId: string, ubicacion: stri
 export const obtenerSolicitudesPorCliente = async (clienteId: string) => {
   // Buscar en SQLite
   return await prisma.solicitud.findMany({
-    where: { clienteId: clienteId }
+    where: { clienteId: clienteId },
+    include: { turno: true }
   });
 };
