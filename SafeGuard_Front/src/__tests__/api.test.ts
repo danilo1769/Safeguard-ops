@@ -53,8 +53,8 @@ describe('API Service - Comunicación con Backend', () => {
 
     await expect(apiCall('/ruta-falsa', {}))
       .rejects
-      .toThrow("Error de conexión (Ruta no encontrada o servidor caído). Status: 404"); 
-  });
+      .toThrow("Error de conexión (Ruta no encontrada). Status: 404");
+    });
 
   it('Debe sanitizar el HTML recibido para prevenir Log Injection (Seguridad)', async () => {
     // 1. Espiamos la consola para ver qué intenta imprimir api.ts

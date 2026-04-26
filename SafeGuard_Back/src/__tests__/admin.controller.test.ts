@@ -1,7 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
-import { cargarPanel, asignar } from '../controllers/admin.controller';
+import { cargarPanel, asignar, descargarReporte } from '../controllers/admin.controller';
 import * as adminService from '../services/admin.service';
 import type { Request, Response } from 'express';
+
 
 vi.mock('../services/admin.service');
 
@@ -51,3 +52,37 @@ describe('Admin Controller', () => {
   });
 
 });
+
+describe('Admin Controller - Descarga de Reportes', () => {
+    it('Debe responder con status 200 y el archivo CSV si todo es correcto', async () => {
+      const csvFalso = 'Col1,Col2\nDato1,Dato2';
+      vi.mocked(adminService.generarReporteNominaCSV).mockResolvedValue(csvFalso);
+      
+      const req = {} as Request;
+      const res = { 
+        setHeader: vi.fn(), // Espiamos que ponga los headers de descarga
+        status: vi.fn().mockReturnThis(), 
+        send: vi.fn(), // send() porque enviamos texto, no json()
+        json: vi.fn()
+      } as unknown as Response;
+
+      await descargarReporte(req, res);
+
+      expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'text/csv');
+      expect(res.setHeader).toHaveBeenCalledWith('Content-Disposition', expect.stringContaining('attachment; filename='));
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.send).toHaveBeenCalledWith(csvFalso);
+    });
+
+    it('Debe responder con error 404 si el servicio no encuentra turnos', async () => {
+      vi.mocked(adminService.generarReporteNominaCSV).mockRejectedValue(new Error('404: No hay turnos'));
+      
+      const req = {} as Request;
+      const res = { setHeader: vi.fn(), status: vi.fn().mockReturnThis(), json: vi.fn() } as unknown as Response;
+
+      await descargarReporte(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({ error: '404: No hay turnos' });
+    });
+  });
