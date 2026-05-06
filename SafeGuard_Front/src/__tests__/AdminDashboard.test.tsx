@@ -10,7 +10,6 @@ describe('Admin Dashboard (UI)', () => {
   beforeEach(() => {
     Storage.prototype.getItem = vi.fn(() => JSON.stringify({ id: 'ADMIN-1', nombre: 'Gordon' }));
 
-    // MOCK INTELIGENTE: Responde según la ruta para evitar que la pantalla explote
     vi.mocked(api.apiCall).mockImplementation(async (url) => {
       if (url === '/admin/panel') {
         return {
@@ -56,7 +55,6 @@ describe('Admin Dashboard (UI)', () => {
   });
 
   it('Debe descargar el reporte CSV al hacer clic en el botón de Nómina', async () => {
-    // 1. Simulamos el archivo Blob
     const mockBlob = new Blob(['Col1,Col2\nDato1,Dato2'], { type: 'text/csv' });
     const mockFetch = vi.fn().mockResolvedValue({
       ok: true,
@@ -68,12 +66,11 @@ describe('Admin Dashboard (UI)', () => {
     globalThis.URL.createObjectURL = mockCreateObjectURL;
     globalThis.URL.revokeObjectURL = vi.fn();
 
-    // 2. FIX DE DOM: Creamos un elemento HTML real, pero interceptamos su clic
     const mockClick = vi.fn();
     const originalCreateElement = document.createElement.bind(document);
     vi.spyOn(document, 'createElement').mockImplementation((tag) => {
-      const element = originalCreateElement(tag); // Crea un nodo verdadero
-      if (tag === 'a') element.click = mockClick; // Le inyectamos nuestro espía
+      const element = originalCreateElement(tag); 
+      if (tag === 'a') element.click = mockClick; 
       return element;
     });
 

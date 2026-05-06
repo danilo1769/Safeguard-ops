@@ -13,7 +13,7 @@ export default function Register() {
     try {
       await apiCall('/auth/register', form);
       alert('Registro exitoso. Ahora puedes iniciar sesión.');
-      navigate('/'); // Redirige al login
+      navigate('/'); 
     } catch (err: any) {
       setError(err.message);
     }

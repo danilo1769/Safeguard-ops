@@ -7,13 +7,11 @@ vi.mock('../services/auth.service');
 
 describe('Auth Controller', () => {
 
-  // --- TESTS DE LOGIN ---
   it('Debe responder con status 200 y el token si el login es correcto', async () => {
-    // Búscala en la línea 12 y déjala así:
     vi.mocked(authService.loginUsuario).mockResolvedValue({ 
       mensaje: "Login exitoso", 
       token: "jwt", 
-      usuario: { id: "U1", nombre: "Juan", rol: "Vigilante" } // <-- Faltaba el id aquí
+      usuario: { id: "U1", nombre: "Juan", rol: "Vigilante" } 
     });
     
     const req = { body: { email: 'a@a.com', password: '123' } } as Request;
@@ -33,7 +31,6 @@ describe('Auth Controller', () => {
     expect(res.status).toHaveBeenCalledWith(401);
   });
 
-  // --- TESTS DE REGISTRO (¡Estas eran las líneas faltantes!) ---
   it('Debe responder con status 201 si el registro es correcto', async () => {
     vi.mocked(authService.registrarUsuario).mockResolvedValue({ id: 'U1', nombre: 'Ana', email: 'a@a.com', passwordHash: '123', rol: 'Vigilante', createdAt: new Date() });
     

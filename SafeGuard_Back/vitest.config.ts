@@ -7,7 +7,7 @@ export default defineConfig({
     fileParallelism: false,
     coverage: {
       provider: 'v8',           // Motor de cobertura de Node
-      reporter: ['text', 'lcov'], // 'text' es para tu terminal, 'lcov' es para SonarQube
+      reporter: ['text', 'lcov'], // 'text' es para la terminal, 'lcov' es para SonarQube
       reportsDirectory: './coverage', // Dónde se guardará el archivo
     }
   }

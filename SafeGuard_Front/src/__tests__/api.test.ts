@@ -6,7 +6,7 @@ describe('API Service - Comunicación con Backend', () => {
   it('Debe retornar los datos en formato JSON si la petición es exitosa', async () => {
     const mockFetch = vi.fn().mockResolvedValue({
       ok: true,
-      headers: { get: () => 'application/json' }, // <-- EL FIX: Simulamos la cabecera
+      headers: { get: () => 'application/json' }, 
       json: async () => ({ mensaje: "Éxito" })
     });
     vi.stubGlobal('fetch', mockFetch);
@@ -19,7 +19,7 @@ describe('API Service - Comunicación con Backend', () => {
   it('Debe lanzar un error si el backend responde con un status de error (ej. 401)', async () => {
     const mockFetch = vi.fn().mockResolvedValue({
       ok: false,
-      headers: { get: () => 'application/json' }, // <-- EL FIX
+      headers: { get: () => 'application/json' }, 
       json: async () => ({ error: "Credenciales inválidas" })
     });
     vi.stubGlobal('fetch', mockFetch);
@@ -32,7 +32,7 @@ describe('API Service - Comunicación con Backend', () => {
   it('Debe lanzar un error genérico si el backend falla sin enviar mensaje de error', async () => {
     const mockFetch = vi.fn().mockResolvedValue({
       ok: false,
-      headers: { get: () => 'application/json' }, // <-- EL FIX
+      headers: { get: () => 'application/json' }, 
       json: async () => ({}) 
     });
     vi.stubGlobal('fetch', mockFetch);
@@ -46,7 +46,7 @@ describe('API Service - Comunicación con Backend', () => {
     const mockFetch = vi.fn().mockResolvedValue({
       ok: false,
       status: 404,
-      headers: { get: () => 'text/html' }, // Simulamos que el servidor mandó HTML
+      headers: { get: () => 'text/html' }, 
       text: async () => '<!DOCTYPE html><html>Ruta no encontrada</html>'
     });
     vi.stubGlobal('fetch', mockFetch);
@@ -57,10 +57,8 @@ describe('API Service - Comunicación con Backend', () => {
     });
 
   it('Debe sanitizar el HTML recibido para prevenir Log Injection (Seguridad)', async () => {
-    // 1. Espiamos la consola para ver qué intenta imprimir api.ts
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     
-    // 2. El Payload Malicioso (Más de 100 caracteres y lleno de saltos de línea \n)
     const htmlMalicioso = '<!DOCTYPE html>\n<script>\n alert("Hackeado"); \n</script>\n' + 'A'.repeat(150);
 
     const mockFetch = vi.fn().mockResolvedValue({
@@ -71,16 +69,12 @@ describe('API Service - Comunicación con Backend', () => {
     });
     vi.stubGlobal('fetch', mockFetch);
 
-    // 3. Ejecutamos la llamada
     await expect(apiCall('/ruta-falsa', {})).rejects.toThrow();
 
-    // 4. VERIFICACIÓN DE SEGURIDAD (Asserts)
-    const mensajeLogueado = consoleSpy.mock.calls[0][1] as string; // Capturamos lo que se imprimió
+    const mensajeLogueado = consoleSpy.mock.calls[0][1] as string; 
     
-    // Afirmamos que NINGÚN salto de línea sobrevivió al filtro
     expect(mensajeLogueado).not.toMatch(/[\r\n]/);
     
-    // Afirmamos que el texto fue truncado a máximo 100 caracteres
     expect(mensajeLogueado.length).toBeLessThanOrEqual(100);
 
     consoleSpy.mockRestore(); // Limpiamos el espía

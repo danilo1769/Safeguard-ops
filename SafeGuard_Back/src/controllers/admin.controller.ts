@@ -33,11 +33,10 @@ export const descargarReporte = async (req: Request, res: Response): Promise<voi
   try {
     const csvData = await generarReporteNominaCSV();
 
-    // PRO-CODE: Le decimos al navegador que esto no es JSON, es un archivo descargable
     res.setHeader('Content-Type', 'text/csv');
     res.setHeader('Content-Disposition', 'attachment; filename="Reporte_Nomina_SafeGuard.csv"');
     
-    res.status(200).send(csvData); // Enviamos el texto puro
+    res.status(200).send(csvData); 
   } catch (error: any) {
     const status = error.message.startsWith('404') ? 404 : 500;
     res.status(status).json({ error: error.message });

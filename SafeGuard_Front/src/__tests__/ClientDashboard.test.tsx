@@ -17,8 +17,6 @@ describe('Dashboard Cliente (UI y SLA)', () => {
     Storage.prototype.getItem = vi.fn(() => JSON.stringify({ id: 'CLI-1', nombre: 'Wayne' }));
     vi.useFakeTimers({ toFake: ['Date'] });
     
-    // BLINDAJE: Por defecto, apiCall SIEMPRE devuelve un arreglo vacío 
-    // para que la tabla no explote si React hace renders extra.
     vi.mocked(api.apiCall).mockResolvedValue([]);
   });
 
@@ -28,10 +26,9 @@ describe('Dashboard Cliente (UI y SLA)', () => {
   });
 
   it('Debe renderizar y crear una solicitud usando el mapa simulado', async () => {
-    // Le enseñamos al mock a responder 'Éxito' solo si la ruta es '/crear'
     vi.mocked(api.apiCall).mockImplementation(async (url) => {
       if (url.includes('/crear')) return { mensaje: 'Éxito' };
-      return []; // Si no es /crear, devuelve la tabla vacía
+      return []; 
     });
 
     render(<ClientDashboard />);
@@ -49,9 +46,8 @@ describe('Dashboard Cliente (UI y SLA)', () => {
   });
 
   it('NO debe mostrar el botón SLA si pasaron menos de 15 minutos', async () => {
-    vi.setSystemTime(new Date('2030-01-01T10:10:00Z')); // Pasaron 10 mins
+    vi.setSystemTime(new Date('2030-01-01T10:10:00Z')); 
 
-    // Mockeamos la tabla con 1 dato
     vi.mocked(api.apiCall).mockResolvedValue([{
       id: 'SOL-1', ubicacion: 'Sede A', horaInicio: '2030-01-01T10:00:00Z', estado: 'Asignado',
       turno: { id: 'TURNO-1', estado: 'Pendiente' }
@@ -61,16 +57,15 @@ describe('Dashboard Cliente (UI y SLA)', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Sede A')).toBeTruthy();
-      expect(screen.queryByText('🚨 Reportar Ausencia')).toBeNull(); // Botón invisible
+      expect(screen.queryByText('🚨 Reportar Ausencia')).toBeNull(); 
     });
   });
 
   it('Debe mostrar el botón SLA a los 15 minutos y permitir hacer clic', async () => {
-    vi.setSystemTime(new Date('2030-01-01T10:20:00Z')); // Pasaron 20 mins
+    vi.setSystemTime(new Date('2030-01-01T10:20:00Z')); 
 
     vi.mocked(api.apiCall).mockImplementation(async (url) => {
       if (url.includes('/reportar-ausencia')) return { mensaje: 'Ausencia reportada' };
-      // Devolvemos la tabla
       return [{
         id: 'SOL-2', ubicacion: 'Sede B', horaInicio: '2030-01-01T10:00:00Z', estado: 'Asignado',
         turno: { id: 'TURNO-2', estado: 'Pendiente' }
@@ -95,7 +90,7 @@ describe('Dashboard Cliente (UI y SLA)', () => {
 
     vi.mocked(api.apiCall).mockResolvedValue([{
       id: 'SOL-3', ubicacion: 'Sede C', horaInicio: '2030-01-01T10:00:00Z', estado: 'Asignado',
-      turno: { id: 'TURNO-3', estado: 'En turno' } // <-- ¡Llegó el guardia!
+      turno: { id: 'TURNO-3', estado: 'En turno' } 
     }]);
 
     render(<ClientDashboard />);

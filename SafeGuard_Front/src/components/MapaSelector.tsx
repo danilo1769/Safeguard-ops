@@ -5,14 +5,12 @@ import L from 'leaflet';
 import iconUrl from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 
-// FIX 1: Conectamos correctamente la sombra importada a la propiedad shadowUrl
 const customIcon = new L.Icon({ 
   iconUrl: iconUrl, 
   shadowUrl: iconShadow, 
   iconAnchor: [12, 41] 
 });
 
-// FIX 2 (SonarQube): Marcamos todas las propiedades como de Solo Lectura
 interface MapaProps {
   readonly latitud: number;
   readonly longitud: number;

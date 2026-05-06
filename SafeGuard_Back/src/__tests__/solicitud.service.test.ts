@@ -18,7 +18,6 @@ describe('Solicitud Service - Reglas de Negocio', () => {
   it('Debe crear la solicitud con estado "Pendiente" si la fecha es válida', async () => {
     const cliente = await prisma.usuario.create({ data: { nombre: 'Wayne', email: 'w@test.com', passwordHash: '123', rol: 'Contratante' } });
     
-    // Fechas en el futuro
     const inicio = new Date(Date.now() + 86400000).toISOString(); 
     const fin = new Date(Date.now() + 90000000).toISOString(); 
 

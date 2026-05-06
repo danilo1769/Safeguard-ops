@@ -4,7 +4,7 @@ export const calcularDistanciaHaversine = (
   lat1: number, lon1: number, 
   lat2: number, lon2: number
 ): number => {
-  const R = 6371e3; // Radio de la Tierra en metros
+  const R = 6371e3; 
   const dLat = toRad(lat2 - lat1);
   const dLon = toRad(lon2 - lon1);
   const a =
@@ -15,5 +15,5 @@ export const calcularDistanciaHaversine = (
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   const distanciaEnMetros = R * c;
   
-  return distanciaEnMetros; // Retorna la distancia en metros
+  return distanciaEnMetros; 
 };

@@ -6,7 +6,7 @@ export const crear = async (req: Request, res: Response): Promise<void> => {
     const solicitud = await crearSolicitud(req.body);
     res.status(201).json({ mensaje: 'Solicitud creada con éxito', solicitud });
   } catch (error: any) {
-    // SonarQube FIX: Usamos la variable de error explícitamente en un log
+    
     console.error(`[Auditoría] Intento fallido al crear solicitud: ${error.message}`);
     res.status(400).json({ error: error.message });
   }
@@ -16,19 +16,15 @@ export const listar = async (req: Request, res: Response): Promise<void> => {
   try {
     const clienteId = req.params.clienteId;
 
-    // TypeScript FIX: Validación de seguridad (Atributo Fiabilidad)
-    // Si no existe, o no es un string, cortamos la ejecución de inmediato.
     if (!clienteId || typeof clienteId !== 'string') {
        res.status(400).json({ error: 'ID de cliente inválido o ausente' });
        return;
     }
 
-    // Ahora TypeScript sabe con 100% de certeza que clienteId es un string válido
     const lista = await obtenerSolicitudesPorCliente(clienteId);
     res.status(200).json(lista);
     
   } catch (error: unknown) {
-    // SonarQube FIX: Registramos la excepción en el servidor
     console.error(`[Auditoría] Error crítico al listar solicitudes:`, error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }

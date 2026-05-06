@@ -6,7 +6,7 @@ export const register = async (req: Request, res: Response) => {
     const nuevoUsuario = await registrarUsuario(req.body);
     res.status(201).json({ mensaje: 'Usuario creado', id: nuevoUsuario.id });
   } catch (error: any) {
-    // Extraemos el código HTTP del error que lanzamos en el servicio
+    
     const status = error.message.startsWith('401') ? 401 : 400;
     res.status(status).json({ error: error.message });
   }

@@ -11,7 +11,6 @@ export default function ClientDashboard() {
   const [mensaje, setMensaje] = useState('');
   const [solicitudes, setSolicitudes] = useState<any[]>([]);
   
-  // Reloj interno para evaluar los 15 minutos en tiempo real
   const [ahora, setAhora] = useState(Date.now());
 
   const usuarioLocal = JSON.parse(localStorage.getItem('usuarioLogueado') || '{}');
@@ -19,7 +18,6 @@ export default function ClientDashboard() {
 
   useEffect(() => {
     cargarSolicitudes();
-    // El reloj se actualiza cada 30 segundos para revisar si habilitamos el botón rojo
     const timer = setInterval(() => setAhora(Date.now()), 30000);
     return () => clearInterval(timer);
   }, []);
@@ -49,11 +47,10 @@ export default function ClientDashboard() {
     try {
       const res = await apiCall('/turnos/reportar-ausencia', { turnoId });
       setMensaje(`🚨 ${res.mensaje}`);
-      cargarSolicitudes(); // Recarga la tabla para actualizar el estado
+      cargarSolicitudes(); 
     } catch (err: any) { setMensaje(`❌ Error: ${err.message}`); }
   };
 
-  // Función Pro-Code: Evalúa la regla de los 15 minutos del PDF
   const hanPasado15Minutos = (fechaInicio: string) => {
     const inicioMs = new Date(fechaInicio).getTime();
     const quinceMinsMs = 15 * 60 * 1000;

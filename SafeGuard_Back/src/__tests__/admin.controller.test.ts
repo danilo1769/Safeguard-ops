@@ -60,9 +60,9 @@ describe('Admin Controller - Descarga de Reportes', () => {
       
       const req = {} as Request;
       const res = { 
-        setHeader: vi.fn(), // Espiamos que ponga los headers de descarga
+        setHeader: vi.fn(), 
         status: vi.fn().mockReturnThis(), 
-        send: vi.fn(), // send() porque enviamos texto, no json()
+        send: vi.fn(), 
         json: vi.fn()
       } as unknown as Response;
 

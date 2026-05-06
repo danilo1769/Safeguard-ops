@@ -16,10 +16,9 @@ describe('Auditoría Nativa (CRON Job)', () => {
   });
 
   afterEach(() => {
-    // AHORA SÍ: Apagamos el robot de verdad antes de la siguiente prueba
     detenerCronJobs(); 
     
-    vi.clearAllMocks(); // Esto sí lo dejamos por limpieza de pruebas unitarias
+    vi.clearAllMocks(); 
     vi.clearAllTimers();
     vi.useRealTimers(); 
   });
@@ -43,18 +42,15 @@ describe('Auditoría Nativa (CRON Job)', () => {
 
     await vi.advanceTimersByTimeAsync(5 * 60 * 1000);
 
-    // Como apagamos el robot en el afterEach, aquí SABEMOS que solo se llamó 1 vez legítimamente
     expect(prisma.solicitud.findMany).toHaveBeenCalledTimes(1);
     expect(prisma.solicitud.updateMany).not.toHaveBeenCalled();
   });
 
   it('Debe evitar que se inicien múltiples robots (Singleton)', () => {
-    // Intentamos iniciar 3 veces
     iniciarCronJobs();
     iniciarCronJobs();
     iniciarCronJobs();
 
-    // Verificamos que el sistema detectó y advirtió sobre la anomalía
     expect(console.warn).toHaveBeenCalledWith('⚠️ Intento de iniciar múltiples robots bloqueado.');
   });
 

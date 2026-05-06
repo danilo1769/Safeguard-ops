@@ -1,12 +1,10 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { registrarUsuario, loginUsuario } from '../services/auth.service';
-import { prisma } from '../config/db'; // Usamos prisma de verdad
+import { prisma } from '../config/db'; 
 
 describe('Auth Service - Reglas de Negocio', () => {
   
-  // 1. Limpiamos la base de datos REAL antes de cada prueba
   beforeEach(async () => {
-    // Primero borramos dependencias para no tener errores de llaves foráneas
     await prisma.turno.deleteMany();
     await prisma.solicitud.deleteMany();
     await prisma.usuario.deleteMany(); 
@@ -27,7 +25,6 @@ describe('Auth Service - Reglas de Negocio', () => {
     
     expect(usuario).toHaveProperty('id');
     
-    // 2. Verificamos buscando directamente en SQLite
     const enBD = await prisma.usuario.findUnique({ where: { email: 'ana@test.com' } });
     expect(enBD).not.toBeNull(); 
     expect(enBD?.nombre).toBe('Ana');
@@ -35,9 +32,9 @@ describe('Auth Service - Reglas de Negocio', () => {
 
   it('Debe rechazar el registro si el correo ya existe', async () => {
     const datos = { nombre: 'Juan', email: 'juan@test.com', passwordHash: 'Admin1234', rol: 'Vigilante' };
-    await registrarUsuario(datos); // Primer registro exitoso
+    await registrarUsuario(datos); 
     
-    await expect(registrarUsuario(datos)) // Intento duplicado
+    await expect(registrarUsuario(datos)) 
       .rejects
       .toThrow('400: El correo ya está registrado');
   });

@@ -30,21 +30,18 @@ describe('Admin Service - Reglas de Asignación', () => {
     
     const fechaHora = new Date('2030-10-10T08:00:00Z');
 
-    // Esta es la solicitud nueva que intentaremos asignarle
     const solicitud = await prisma.solicitud.create({ 
       data: { clienteId: cliente.id, ubicacion: 'A', horaInicio: fechaHora, horaFin: fechaHora, latitud: 0, longitud: 0, estado: 'Pendiente' } 
     });
 
-    // FIX: Creamos una solicitud REAL previa para que el turno previo tenga donde anclarse
     const solicitudPrevia = await prisma.solicitud.create({ 
       data: { clienteId: cliente.id, ubicacion: 'B', horaInicio: fechaHora, horaFin: fechaHora, latitud: 0, longitud: 0, estado: 'Asignado' } 
     });
 
-    // Le creamos el turno ocupado asociado a la solicitud real
     await prisma.turno.create({
       data: { 
         vigilanteId: vigilante.id, 
-        solicitudId: solicitudPrevia.id, // <-- AQUÍ USAMOS EL ID REAL
+        solicitudId: solicitudPrevia.id, 
         latitudPuesto: 0, 
         longitudPuesto: 0, 
         horaInicio: fechaHora, 
@@ -53,7 +50,6 @@ describe('Admin Service - Reglas de Asignación', () => {
       }
     });
 
-    // Intentamos asignarle la nueva, ¡debe explotar!
     await expect(asignarVigilante(solicitud.id, vigilante.id)).rejects.toThrow('400: Vigilante Ocupado.');
   });
 
@@ -77,12 +73,11 @@ describe('Generación de Reportes (CSV)', () => {
     });
 
     it('Debe generar el texto CSV correctamente si hay turnos completados', async () => {
-      // 1. Preparamos datos simulados
+
       const cliente = await prisma.usuario.create({ data: { nombre: 'C', email: 'c@c.com', passwordHash: '1', rol: 'Contratante' } });
       const guardia = await prisma.usuario.create({ data: { nombre: 'Guardia Elite', email: 'g@g.com', passwordHash: '1', rol: 'Vigilante' } });
       const sol = await prisma.solicitud.create({ data: { clienteId: cliente.id, ubicacion: 'A', horaInicio: new Date(), horaFin: new Date(), latitud: 0, longitud: 0, estado: 'Completado' } });
       
-      // 2. Creamos un turno COMPLETO (8.5 horas trabajadas)
       await prisma.turno.create({
         data: {
           vigilanteId: guardia.id, solicitudId: sol.id, latitudPuesto: 0, longitudPuesto: 0,
@@ -94,13 +89,11 @@ describe('Generación de Reportes (CSV)', () => {
         }
       });
 
-      // 3. Ejecutamos la función
       const { generarReporteNominaCSV } = await import('../services/admin.service');
       const csv = await generarReporteNominaCSV();
 
-      // 4. Verificamos que el formato CSV sea exacto
-      expect(csv).toContain('ID Turno,Guardia,Email,Fecha Inicio,Fecha Fin,Horas Efectivas'); // Cabecera
-      expect(csv).toContain('Guardia Elite,g@g.com'); // Datos del guardia
-      expect(csv).toContain('8.5'); // Horas pagadas
+      expect(csv).toContain('ID Turno,Guardia,Email,Fecha Inicio,Fecha Fin,Horas Efectivas'); 
+      expect(csv).toContain('Guardia Elite,g@g.com'); 
+      expect(csv).toContain('8.5');
     });
   });

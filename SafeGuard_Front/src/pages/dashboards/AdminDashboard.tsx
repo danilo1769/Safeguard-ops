@@ -14,7 +14,6 @@ export default function AdminDashboard() {
 
   const cargarDatos = async () => {
     try {
-      // Como el Admin no recibe ID por parámetro en este endpoint, hacemos un GET normal
       const data = await apiCall('/admin/panel', null, 'GET');
       setSolicitudes(data.solicitudesPendientes);
       setVigilantes(data.vigilantes);
@@ -35,11 +34,10 @@ export default function AdminDashboard() {
     try {
       await apiCall('/admin/asignar', { solicitudId, vigilanteId });
       setMensaje('✅ Turno asignado. El vigilante ha sido notificado en su App.');
-      cargarDatos(); // Recargar KPIs y Tablas
+      cargarDatos(); 
     } catch (err: any) { setError(`❌ ${err.message}`); }
   };
 
-  // KPIs Calculados en tiempo real
   const guardiasDisponibles = vigilantes.length;
   const serviciosPendientes = solicitudes.length;
 
@@ -53,18 +51,16 @@ export default function AdminDashboard() {
         throw new Error(errorData.error);
       }
 
-      // Convertimos la respuesta en un Archivo (Blob)
       const blob = await response.blob();
       const url = globalThis.URL.createObjectURL(blob);
       
-      // Truco Pro-Code: Creamos un <a> invisible, le hacemos clic y lo borramos
       const a = document.createElement('a');
       a.href = url;
       a.download = 'Reporte_Nomina_SafeGuard.csv';
       document.body.appendChild(a);
       a.click();
       a.remove();
-      globalThis.URL.revokeObjectURL(url); // Limpiamos memoria
+      globalThis.URL.revokeObjectURL(url); 
 
       setMensaje('✅ Reporte descargado exitosamente.');
     } catch (err: any) {

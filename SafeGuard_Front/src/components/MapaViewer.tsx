@@ -5,14 +5,12 @@ import L from 'leaflet';
 import iconUrl from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 
-// FIX 1: Conectamos iconShadow correctamente
 const customIcon = new L.Icon({ 
   iconUrl: iconUrl, 
   shadowUrl: iconShadow, 
   iconAnchor: [12, 41] 
 });
 
-// FIX 2: Propiedades de solo lectura (SonarQube)
 interface MapaViewerProps {
   readonly latitud: number;
   readonly longitud: number;

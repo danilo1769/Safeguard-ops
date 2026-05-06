@@ -35,7 +35,6 @@ describe('Turno Service - Antifraude y Clock-out', () => {
     const cli = await prisma.usuario.create({ data: { nombre: 'C2', email: 'c2@c.com', passwordHash: '1', rol: 'Contratante' } });
     const sol = await prisma.solicitud.create({ data: { clienteId: cli.id, ubicacion: 'B', latitud: 0, longitud: 0, horaInicio: new Date(), horaFin: new Date() }});
     
-    // Estado "Pendiente" (aún no ha hecho clock-in)
     const turno = await prisma.turno.create({ data: { vigilanteId: vig.id, solicitudId: sol.id, latitudPuesto: 0, longitudPuesto: 0, horaInicio: new Date(), horaFinEstimada: new Date(), estado: 'Pendiente' } });
 
     await expect(registrarClockOut(turno.id, 0, 0)).rejects.toThrow('400: No puedes finalizar un turno que no ha iniciado');
@@ -46,12 +45,11 @@ describe('Turno Service - Antifraude y Clock-out', () => {
     const cli = await prisma.usuario.create({ data: { nombre: 'C3', email: 'c3@c.com', passwordHash: '1', rol: 'Contratante' } });
     
     const horaApertura = new Date('2030-01-01T08:00:00Z');
-    const horaCierre = new Date('2030-01-01T18:00:00Z'); // Oficialmente termina a las 6PM
+    const horaCierre = new Date('2030-01-01T18:00:00Z'); 
 
     const sol = await prisma.solicitud.create({ data: { clienteId: cli.id, ubicacion: 'C', latitud: 0, longitud: 0, horaInicio: horaApertura, horaFin: horaCierre }});
     const turno = await prisma.turno.create({ data: { vigilanteId: vig.id, solicitudId: sol.id, latitudPuesto: 0, longitudPuesto: 0, horaInicio: horaApertura, horaFinEstimada: horaCierre, estado: 'En turno' } });
 
-    // El sistema dice que son las 2PM (intenta irse temprano)
     vi.setSystemTime(new Date('2030-01-01T14:00:00Z'));
 
     await expect(registrarClockOut(turno.id, 0, 0)).rejects.toThrow('403: No puedes abandonar tu puesto. Tu turno aún no ha terminado.');
@@ -66,10 +64,8 @@ describe('Turno Service - Antifraude y Clock-out', () => {
     
     const turno = await prisma.turno.create({ data: { vigilanteId: vig.id, solicitudId: sol.id, latitudPuesto: 6.17, longitudPuesto: -75.59, horaInicio: horaApertura, horaFinEstimada: horaApertura, estado: 'En turno' } });
 
-    // FIX: Le decimos al sistema que ya es la hora de salida oficial
     vi.setSystemTime(horaApertura);
 
-    // Ahora sí, intenta marcar salida a tiempo, pero desde otra ciudad
     await expect(registrarClockOut(turno.id, 10.01, -75.01)).rejects.toThrow(/403: Fraude detectado./);
   });
 
@@ -83,12 +79,11 @@ describe('Turno Service - Antifraude y Clock-out', () => {
     const sol = await prisma.solicitud.create({ data: { clienteId: cli.id, ubicacion: 'E', latitud: 0, longitud: 0, horaInicio: horaApertura, horaFin: horaCierre }});
     const turno = await prisma.turno.create({ data: { vigilanteId: vig.id, solicitudId: sol.id, latitudPuesto: 0, longitudPuesto: 0, horaInicio: horaApertura, horaFinEstimada: horaCierre, estado: 'En turno' } });
 
-    // El sistema dice que son exactamente las 16:00 (Fin de turno, 8 horas exactas)
     vi.setSystemTime(new Date('2030-01-01T16:00:00Z'));
 
     const turnoFinalizado = await registrarClockOut(turno.id, 0, 0);
 
     expect(turnoFinalizado.estado).toBe('Completado');
-    expect(turnoFinalizado.horasEfectivas).toBe(8); // ¡Magia matemática validada!
+    expect(turnoFinalizado.horasEfectivas).toBe(8); 
   });
 });

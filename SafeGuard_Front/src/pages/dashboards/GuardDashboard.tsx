@@ -41,14 +41,12 @@ export default function GuardDashboard() {
     );
   };
 
-  // CÁLCULO PRO-CODE: Sumamos todas las horas efectivas de los turnos completados
   const horasTotales = misTurnos.reduce((total, turno) => total + (turno.horasEfectivas || 0), 0);
 
-  // FIX SONARQUBE: Función limpia para obtener el color del estado
   const getColorPorEstado = (estado: string) => {
     if (estado === 'Completado') return 'green';
     if (estado === 'En turno') return 'blue';
-    return 'orange'; // Pendiente u otros
+    return 'orange'; 
   };
 
   return (

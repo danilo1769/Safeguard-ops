@@ -15,7 +15,6 @@ vi.mock('react-router-dom', async () => ({
 describe('Vista de Registro', () => {
   it('Debe renderizar y enviar el formulario exitosamente', async () => {
     vi.mocked(api.apiCall).mockResolvedValue({ id: '1' });
-    // Silenciamos el alert del navegador
     vi.spyOn(globalThis, 'alert').mockImplementation(() => {}); 
 
     render(<BrowserRouter><Register /></BrowserRouter>);
@@ -33,20 +32,16 @@ describe('Vista de Registro', () => {
   });
 
  it('Debe mostrar error si el backend falla', async () => {
-    // 1. Simulamos que la API explota y lanza un error
     vi.mocked(api.apiCall).mockRejectedValue(new Error('Correo duplicado'));
     
     render(<BrowserRouter><Register /></BrowserRouter>);
 
-    // 2. FIX: Llenamos los campos obligatorios para que el HTML5 nos deje enviar el formulario
     fireEvent.change(screen.getByPlaceholderText('Nombre completo'), { target: { value: 'Juan' } });
     fireEvent.change(screen.getByPlaceholderText('Correo electrónico'), { target: { value: 'j@j.com' } });
     fireEvent.change(screen.getByPlaceholderText('Contraseña (Min. 8 carácteres)'), { target: { value: 'Password123' } });
 
-    // 3. Hacemos clic en el botón (ahora sí pasará la validación del navegador)
     fireEvent.click(screen.getByRole('button', { name: 'Registrarme' }));
 
-    // 4. Esperamos pacientemente a que React pinte el error rojo
     await waitFor(() => {
       expect(screen.getByText('Correo duplicado')).toBeTruthy();
     });

@@ -12,7 +12,6 @@ export const registrarUsuario = async (datos: { nombre: string, email: string, p
   const existe = await prisma.usuario.findUnique({ where: { email: datos.email } });
   if (existe) throw new Error('400: El correo ya está registrado');
 
-  // FIX DE SEGURIDAD 1: Encriptación Bcrypt (Regla del PDF)
   const saltRounds = 10;
   const claveEncriptada = await bcrypt.hash(datos.passwordHash, saltRounds);
 
@@ -20,7 +19,7 @@ export const registrarUsuario = async (datos: { nombre: string, email: string, p
     data: {
       nombre: datos.nombre,
       email: datos.email,
-      passwordHash: claveEncriptada, // Guardamos el Hash, NUNCA la clave real
+      passwordHash: claveEncriptada, 
       rol: datos.rol
     }
   });
@@ -32,15 +31,13 @@ export const loginUsuario = async (email: string, password: string) => {
   const usuario = await prisma.usuario.findUnique({ where: { email: email } });
   if (!usuario) throw new Error('401: Credenciales inválidas');
 
-  // FIX DE SEGURIDAD 2: Comparación Criptográfica
   const esValida = await bcrypt.compare(password, usuario.passwordHash);
   if (!esValida) throw new Error('401: Credenciales inválidas');
 
-  // FIX DE SEGURIDAD 3: Generación de JWT Real
   const token = jwt.sign(
     { id: usuario.id, rol: usuario.rol }, 
     JWT_SECRET, 
-    { expiresIn: '8h' } // El token expira en 8 horas por seguridad
+    { expiresIn: '8h' } 
   );
 
   return {

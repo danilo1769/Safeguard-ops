@@ -14,16 +14,12 @@ export default function Login() {
     try {
       const data = await apiCall('/auth/login', { email, password });
       
-      // FIX DE SEGURIDAD SONARQUBE (Taint Analysis S8475)
-      // Sanitizamos los datos: Aseguramos que sean strings puros y descartamos basura inyectada
       const usuarioSanitizado = {
         id: String(data.usuario.id),
-        // Expresión regular básica para borrar símbolos extraños (< >) y evitar inyección HTML
         nombre: String(data.usuario.nombre).replaceAll(/[<>]/g, ""),
         rol: String(data.usuario.rol)
       };
 
-      // Guardamos el objeto limpio, NO el radiactivo
       localStorage.setItem('usuarioLogueado', JSON.stringify(usuarioSanitizado));
 
       if (usuarioSanitizado.rol === 'Administrativo') {
