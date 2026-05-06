@@ -51,8 +51,7 @@ SAFEGUARD-OPS/
 │   │   ├── services/                # Puente de comunicación asíncrona con la API
 │   │   └── __tests__/               # Suite de Pruebas Unitarias Frontend
 │   └── App.tsx                      # Orquestador de Rutas Frontend
-│
-└── sonar-project.properties         # Configuración del motor de auditoría de código
+
 ```
 
 ## 4. Despliegue en Entorno de Desarrollo
