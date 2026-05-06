@@ -25,7 +25,7 @@ Se implementaron los atributos del modelo de calidad **ISO/IEC 25010**:
 
 ## 3. Estructura del Proyecto (Monorepo)
 
-El código fuente está segmentado siguiendo el principio de Separación de Responsabilidades (Clean Architecture):
+El código fuente está segmentado siguiendo el principio de Separación de Responsabilidades:
 
 ```text
 SAFEGUARD-OPS/
