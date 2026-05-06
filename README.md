@@ -103,5 +103,8 @@ npm run coverage
 cd ..
 sonar-scanner
 ```
-
+## 6. Ejecución en el sonarqube 
+```bash
+npx sonar-scanner   -Dsonar.host.url=http://localhost:9000   -Dsonar.token= TOKEN_ACTUALIZADO  -Dsonar.projectKey=SafeGuard_Ops   -Dsonar.sources=SafeGuard_Back/src,SafeGuard_Front/src   -Dsonar.tests=SafeGuard_Back/src,SafeGuard_Front/src   -Dsonar.test.inclusions="*/.test.ts,*/.test.tsx"   -Dsonar.coverage.exclusions="SafeGuard_Back/src/routes/*,SafeGuard_Back/src/index.ts,SafeGuard_Front/src/main.tsx,SafeGuard_Front/src/App.tsx,SafeGuard_Front/src/components/*"   -Dsonar.javascript.lcov.reportPaths=SafeGuard_Back/coverage/lcov.info,SafeGuard_Front/coverage/lcov.info   -Dsonar.typescript.tsconfigPaths=SafeGuard_Back/tsconfig.json,SafeGuard_Front/tsconfig.j
+```
 ***
