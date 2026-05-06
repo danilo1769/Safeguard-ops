@@ -92,16 +92,11 @@ Para evaluar el sistema contra las métricas de calidad y generar el reporte LCO
 ```bash
 # Paso 1: Generar reportes de cobertura en el Backend
 cd SafeGuard_Back
-npm run coverage
+npx vitest run --coverage
 
 # Paso 2: Generar reportes de cobertura en el Frontend
 cd ../SafeGuard_Front
-npm run coverage
-
-# Paso 3: Ejecutar el análisis estático
-# (Requiere estar en la carpeta raíz del proyecto y tener un servidor SonarQube activo en el puerto 9000)
-cd ..
-sonar-scanner
+npx vitest run --coverage
 ```
 ## 6. Ejecución en el sonarqube 
 ```bash
