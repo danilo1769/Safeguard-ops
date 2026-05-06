@@ -2,7 +2,7 @@
 
 # SafeGuard Ops - Sistema de Gestión de Personal de Seguridad
 
-SafeGuard Ops es un sistema integral de gestión operativa y logística para empresas de seguridad privada. El proyecto ha sido desarrollado aplicando un enfoque "Pro-Code", asegurando escalabilidad, mantenibilidad y cumplimiento de métricas de calidad de software de grado empresarial.
+SafeGuard Ops es un sistema integral de gestión operativa y logística para empresas de seguridad privada. El proyecto ha sido desarrollado aplicando modelo de Losavio, asegurando escalabilidad, mantenibilidad y cumplimiento de métricas de calidad de software de grado empresarial.
 
 ## 1. Fundamentos de Calidad y Arquitectura
 
