@@ -1,49 +1,108 @@
-🛡️ SafeGuard Ops - Sistema de Gestión de Seguridad Privada
+***
 
-Un sistema integral con enfoque "Pro-Code" para la gestión logística y operativa de personal de seguridad privada. Este proyecto ha sido estructurado y desarrollado cumpliendo estrictamente con los estándares de Calidad de Software (ISO/IEC 25010) y el Modelo de Trazabilidad de Losavio (2003).
+# SafeGuard Ops - Sistema de Gestión de Personal de Seguridad
 
-🚀 Atributos de Calidad Implementados (ISO 25010)
+SafeGuard Ops es un sistema integral de gestión operativa y logística para empresas de seguridad privada. El proyecto ha sido desarrollado aplicando un enfoque "Pro-Code", asegurando escalabilidad, mantenibilidad y cumplimiento de métricas de calidad de software de grado empresarial.
 
-    🔒 Seguridad: Autenticación protegida con JSON Web Tokens (JWT), cifrado de contraseñas de un solo sentido (Bcrypt) bajo la normativa NIST SP 800-63B, y sanitización de datos para prevenir vulnerabilidades (XSS, Path Traversal, Log Injection).
-    🎯 Fiabilidad (Inmunidad / Antifraude): Validación de geolocalización en tiempo real mediante la Fórmula Matemática de Haversine para el control de asistencia (Clock-in / Clock-out) y Transacciones ACID en la asignación de turnos.
-    ⚡ Eficiencia de Desempeño: Automatización de auditorías de SLA (Acuerdos de Nivel de Servicio) mediante un CRON Job nativo en el Event Loop de Node.js, operando con patrón Singleton y Zero Dependencies.
-    🛠️ Mantenibilidad y Verificabilidad: Desarrollo guiado por pruebas (TDD). Más de 65 pruebas unitarias aisladas con Mocks e inyección de Fake Timers, garantizando una cobertura de código auditable superior al 90%.
+## 1. Fundamentos de Calidad y Arquitectura
 
-🏗️ Arquitectura de Software
+El sistema ha sido estructurado siguiendo el **Modelo de Trazabilidad de Losavio (2003)**, asegurando que cada requisito funcional se corresponda directamente con un módulo arquitectónico y su respectiva prueba unitaria. 
 
-El sistema utiliza una Arquitectura Limpia (Clean Architecture) orientada a servicios, dividiendo claramente el entorno de ejecución:
-    Capa de Presentación (Frontend): Construida con React, Vite y TypeScript. Integración de mapas interactivos libres con Leaflet y enrutamiento inteligente por control de roles (RBAC).
-    Capa de Negocio (Backend): Servidor Node.js + Express estructurado en Controladores y Servicios. Manejo de Graceful Shutdown para prevenir corrupción de datos en caídas del sistema.
-    Capa de Persistencia (Base de Datos): Motor SQLite administrado a través del ORM Prisma para asegurar la integridad referencial y tipado estricto extremo a extremo (End-to-End Type Safety).
+Se implementaron los atributos del modelo de calidad **ISO/IEC 25010**:
 
+*   **Adecuación Funcional y Fiabilidad:** Sistema antifraude en tiempo real que calcula la geolocalización del personal mediante la fórmula matemática de Haversine. Gestión de transacciones ACID en la asignación de turnos.
+*   **Seguridad:** Encriptación de credenciales (Bcrypt) bajo la normativa NIST SP 800-63B, autenticación basada en tokens (JWT), control de acceso por roles (RBAC) y prevención activa de vulnerabilidades (XSS, Path Traversal, Log Injection).
+*   **Eficiencia de Desempeño:** Automatización nativa de procesos (CRON) en el Event Loop de Node.js bajo un patrón Singleton, minimizando dependencias externas.
+*   **Verificabilidad:** Desarrollo Guiado por Pruebas (TDD) con una cobertura de código sostenida superior al 90%, auditada mediante análisis estático de código continuo.
 
-⚙️ Instrucciones de Arranque (Entorno Local)
-Para ejecutar este proyecto en un entorno de desarrollo, sigue estos pasos:
+## 2. Pila Tecnológica (Tech Stack)
 
-1. Preparar el Backend y Base de Datos
+*   **Lenguaje Base:** TypeScript (Tipado estricto End-to-End).
+*   **Backend:** Node.js, Express.js.
+*   **Frontend:** React.js, Vite, React Router, Leaflet (Mapas OSM).
+*   **Persistencia de Datos:** SQLite (Entorno de desarrollo), Prisma ORM.
+*   **Testing y Auditoría:** Vitest, SonarQube.
 
-Bash:
-    cd SafeGuard_Back
-    npm install
-    npx prisma migrate dev
-    npm run dev
+## 3. Estructura del Proyecto (Monorepo)
 
-2. Preparar el Frontend
+El código fuente está segmentado siguiendo el principio de Separación de Responsabilidades (Clean Architecture):
 
-En una terminal nueva:
-    cd SafeGuard_Front
-    npm install
-    npm run dev
+```text
+SAFEGUARD-OPS/
+├── SafeGuard_Back/                  # Capa de Lógica de Negocio y Persistencia
+│   ├── prisma/
+│   │   ├── schema.prisma            # Modelado Relacional de la Base de Datos
+│   │   └── dev.db                   # Instancia local de la base de datos
+│   ├── src/
+│   │   ├── config/                  # Instancias de conexión (Prisma Client)
+│   │   ├── controllers/             # Gestión de peticiones HTTP y respuestas (Express)
+│   │   ├── jobs/                    # Procesos automatizados en segundo plano (CRON)
+│   │   ├── routes/                  # Definición de Endpoints RESTful
+│   │   ├── services/                # Reglas de negocio y operaciones transaccionales
+│   │   ├── utils/                   # Herramientas matemáticas (Haversine)
+│   │   └── __tests__/               # Suite de Pruebas Unitarias Backend
+│   └── index.ts                     # Punto de entrada y Graceful Shutdown
+│
+├── SafeGuard_Front/                 # Capa de Presentación e Interacción
+│   ├── src/
+│   │   ├── components/              # Componentes visuales reutilizables (Ej: Mapas)
+│   │   ├── pages/                   # Vistas principales y enrutamiento
+│   │   │   └── dashboards/          # Interfaces segregadas por Rol (Admin, Cliente, Vigilante)
+│   │   ├── services/                # Puente de comunicación asíncrona con la API
+│   │   └── __tests__/               # Suite de Pruebas Unitarias Frontend
+│   └── App.tsx                      # Orquestador de Rutas Frontend
+│
+└── sonar-project.properties         # Configuración del motor de auditoría de código
+```
 
-3. Ejecutar Auditoría de Calidad (Opcional)
+## 4. Despliegue en Entorno de Desarrollo
 
-Para comprobar el estado de las pruebas unitarias y generar los reportes de cobertura (LCOV):
+Para inicializar el sistema localmente, es necesario levantar ambas capas del sistema de forma concurrente.
 
-# Ejecutar en SafeGuard_Back y SafeGuard_Front
+### 4.1. Configuración de Variables de Entorno
+Antes de iniciar, genere un archivo `.env` en la ruta `SafeGuard_Back/` con las siguientes credenciales:
+```env
+DATABASE_URL="file:./dev.db"
+JWT_SECRET="Defina_Una_Clave_Criptografica_Segura_Aqui"
+```
+
+### 4.2. Inicialización de la Base de Datos y Backend
+Abra una sesión de terminal y ejecute:
+```bash
+cd SafeGuard_Back
+npm install
+npx prisma generate
+npx prisma migrate dev
+npm run dev
+```
+*El servidor API REST iniciará en el puerto 3000.*
+
+### 4.3. Inicialización del Frontend
+En una nueva sesión de terminal, ejecute:
+```bash
+cd SafeGuard_Front
+npm install
+npm run dev
+```
+*La interfaz gráfica estará disponible en el puerto 5173.*
+
+## 5. Ejecución de Pruebas y Análisis de Calidad
+
+Para evaluar el sistema contra las métricas de calidad y generar el reporte LCOV:
+
+```bash
+# Paso 1: Generar reportes de cobertura en el Backend
+cd SafeGuard_Back
 npm run coverage
 
-# Ejecutar en la carpeta Raíz del proyecto (Requiere SonarQube Scanner local)
-npx sonar-scanner
+# Paso 2: Generar reportes de cobertura en el Frontend
+cd ../SafeGuard_Front
+npm run coverage
 
----------------------------------------------------------------------------------
-Proyecto desarrollado para la asignatura de Calidad de Software.
+# Paso 3: Ejecutar el análisis estático
+# (Requiere estar en la carpeta raíz del proyecto y tener un servidor SonarQube activo en el puerto 9000)
+cd ..
+sonar-scanner
+```
+
+***
