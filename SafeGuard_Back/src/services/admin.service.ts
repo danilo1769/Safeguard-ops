@@ -1,10 +1,18 @@
 import { prisma } from '../config/db';
 
 export const obtenerDatosPanelAdmin = async () => {
-  const solicitudesPendientes = await prisma.solicitud.findMany({ where: { estado: 'Pendiente' } });
+  const solicitudes = await prisma.solicitud.findMany({
+    include: { 
+      turno: { 
+        include: { vigilante: true } // El "Join" de SQL para ver el nombre del guardia
+      } 
+    },
+    orderBy: { createdAt: 'desc' } // Los más recientes primero
+  });
+  
   const vigilantes = await prisma.usuario.findMany({ where: { rol: 'Vigilante' } });
   
-  return { solicitudesPendientes, vigilantes };
+  return { solicitudes, vigilantes }; // Cambiamos el nombre de la variable de retorno
 };
 
 export const asignarVigilante = async (solicitudId: string, vigilanteId: string) => {

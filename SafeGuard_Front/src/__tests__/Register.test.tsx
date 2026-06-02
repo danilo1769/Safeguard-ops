@@ -19,11 +19,12 @@ describe('Vista de Registro', () => {
 
     render(<BrowserRouter><Register /></BrowserRouter>);
 
-    fireEvent.change(screen.getByPlaceholderText('Nombre completo'), { target: { value: 'Juan' } });
-    fireEvent.change(screen.getByPlaceholderText('Correo electrónico'), { target: { value: 'j@j.com' } });
-    fireEvent.change(screen.getByPlaceholderText('Contraseña (Min. 8 carácteres)'), { target: { value: 'Password123' } });
+    // AHORA BUSCAMOS POR EL LABEL ACCESIBLE
+    fireEvent.change(screen.getByLabelText(/Nombre Completo/i), { target: { value: 'Juan' } });
+    fireEvent.change(screen.getByLabelText(/Correo Electrónico/i), { target: { value: 'j@j.com' } });
+    fireEvent.change(screen.getByLabelText(/Contraseña Segura/i), { target: { value: 'Password123' } });
     
-    fireEvent.click(screen.getByRole('button', { name: 'Registrarme' }));
+    fireEvent.click(screen.getByRole('button', { name: /REGISTRAR EN EL SISTEMA/i }));
 
     await waitFor(() => {
       expect(api.apiCall).toHaveBeenCalledWith('/auth/register', expect.any(Object));
@@ -31,19 +32,18 @@ describe('Vista de Registro', () => {
     });
   });
 
- it('Debe mostrar error si el backend falla', async () => {
+  it('Debe mostrar error si el backend falla', async () => {
     vi.mocked(api.apiCall).mockRejectedValue(new Error('Correo duplicado'));
-    
     render(<BrowserRouter><Register /></BrowserRouter>);
 
-    fireEvent.change(screen.getByPlaceholderText('Nombre completo'), { target: { value: 'Juan' } });
-    fireEvent.change(screen.getByPlaceholderText('Correo electrónico'), { target: { value: 'j@j.com' } });
-    fireEvent.change(screen.getByPlaceholderText('Contraseña (Min. 8 carácteres)'), { target: { value: 'Password123' } });
-
-    fireEvent.click(screen.getByRole('button', { name: 'Registrarme' }));
+    fireEvent.change(screen.getByLabelText(/Nombre Completo/i), { target: { value: 'Juan' } });
+    fireEvent.change(screen.getByLabelText(/Correo Electrónico/i), { target: { value: 'j@j.com' } });
+    fireEvent.change(screen.getByLabelText(/Contraseña Segura/i), { target: { value: 'Password123' } });
+    
+    fireEvent.click(screen.getByRole('button', { name: /REGISTRAR EN EL SISTEMA/i }));
 
     await waitFor(() => {
-      expect(screen.getByText('Correo duplicado')).toBeTruthy();
+      expect(screen.getByText(/Correo duplicado/i)).toBeTruthy();
     });
   });
 });

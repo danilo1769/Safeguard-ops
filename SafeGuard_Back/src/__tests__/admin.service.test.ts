@@ -17,7 +17,8 @@ describe('Admin Service - Reglas de Asignación', () => {
     await prisma.solicitud.create({ data: { clienteId: cliente.id, ubicacion: 'A', horaInicio: new Date(), horaFin: new Date(), latitud: 0, longitud: 0, estado: 'Pendiente' } });
 
     const datos = await obtenerDatosPanelAdmin();
-    expect(datos.solicitudesPendientes).toHaveLength(1);
+    expect(datos.solicitudes).toHaveLength(1); // <-- FIX: Le quitamos la palabra "Pendientes"
+    expect(datos.vigilantes).toHaveLength(1);
   });
 
   it('Debe lanzar error 404 si la solicitud no existe', async () => {
