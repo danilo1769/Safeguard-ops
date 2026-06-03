@@ -48,11 +48,6 @@ export default function Register() {
               <option value="Contratante">Cliente (Contratante)</option>
             </select>
           </div>
-            <select className="input-control" onChange={e => setForm({...form, rol: e.target.value})}>
-              <option value="Vigilante">Personal Operativo (Vigilante)</option>
-              <option value="Administrativo">Personal Administrativo</option>
-              <option value="Contratante">Cliente (Contratante)</option>
-            </select>
           </div>
           <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '15px' }}>REGISTRAR EN EL SISTEMA</button>
         </form>
