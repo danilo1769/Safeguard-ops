@@ -29,28 +29,33 @@ describe('Admin Service - Reglas de Asignación', () => {
     const cliente = await prisma.usuario.create({ data: { nombre: 'C1', email: 'c1@test.com', passwordHash: '123', rol: 'Contratante' } });
     const vigilante = await prisma.usuario.create({ data: { nombre: 'Batman', email: 'b@b.com', passwordHash: '123', rol: 'Vigilante' } });
     
-    const fechaHora = new Date('2030-10-10T08:00:00Z');
+    const inicio = new Date('2030-10-10T08:00:00Z');
+    const fin = new Date('2030-10-10T16:00:00Z'); // ¡El turno dura 8 horas!
 
+    // Solicitud que intentaremos asignarle
     const solicitud = await prisma.solicitud.create({ 
-      data: { clienteId: cliente.id, ubicacion: 'A', horaInicio: fechaHora, horaFin: fechaHora, latitud: 0, longitud: 0, estado: 'Pendiente' } 
+      data: { clienteId: cliente.id, ubicacion: 'A', horaInicio: inicio, horaFin: fin, latitud: 0, longitud: 0, estado: 'Pendiente' } 
     });
 
+    // Solicitud previa para anclar el turno viejo
     const solicitudPrevia = await prisma.solicitud.create({ 
-      data: { clienteId: cliente.id, ubicacion: 'B', horaInicio: fechaHora, horaFin: fechaHora, latitud: 0, longitud: 0, estado: 'Asignado' } 
+      data: { clienteId: cliente.id, ubicacion: 'B', horaInicio: inicio, horaFin: fin, latitud: 0, longitud: 0, estado: 'Asignado' } 
     });
 
+    // Creamos el turno que ya tiene ocupado al guardia
     await prisma.turno.create({
       data: { 
         vigilanteId: vigilante.id, 
         solicitudId: solicitudPrevia.id, 
         latitudPuesto: 0, 
         longitudPuesto: 0, 
-        horaInicio: fechaHora, 
-        horaFinEstimada: fechaHora, 
+        horaInicio: inicio, 
+        horaFinEstimada: fin, 
         estado: 'Pendiente' 
       }
     });
 
+    // Al intentar asignarle la nueva, el sistema DEBE explotar detectando el cruce
     await expect(asignarVigilante(solicitud.id, vigilante.id)).rejects.toThrow('400: Vigilante Ocupado.');
   });
 
