@@ -24,8 +24,10 @@ export const asignarVigilante = async (solicitudId: string, vigilanteId: string)
 
   const cruceHorario = await prisma.turno.findFirst({
     where: { 
-      vigilanteId: vigilanteId, 
-      horaInicio: solicitud.horaInicio 
+      vigilanteId: vigilanteId,
+      // Lógica de cruce de rangos: (InicioA < FinB) Y (FinA > InicioB)
+      horaInicio: { lt: solicitud.horaFin },
+      horaFinEstimada: { gt: solicitud.horaInicio }
     }
   });
   
